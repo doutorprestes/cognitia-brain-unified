@@ -2,65 +2,79 @@
 
 > Sistema unificado de monitoramento acadêmico: grants + artigos + IA.
 
-## Visão Geral
+## Situação Atual
 
-**Problema:** Editais de fomento e artigos científicos são monitorados em sistemas separados (CognitiaBrain, GrantWatch, IA-Brasil, InvestIA, etc.), com bots Telegram diferentes, sem compartilhamento de inteligência ou aprendizado cruzado.
+**7 projetos importados** (código legado, sem modificações):
+- CognitiaBrain (artigos + LLM + Telegram bot)
+- GrantWatch (editais + scrapers TS)
+- IA-Brasil (coletor dados públicos + 20+ módulos)
+- InvestIA (ETL + API + backend)
+- buscador_de_grants (.NET + ML.NET)
+- grantwatch_evolution (Next.js dashboard)
+- inteligencia-ai (scrapers + webapp)
 
-**Objetivo:** Pipeline unificado que coleta, classifica e notifica sobre grants E artigos, aprendendo com feedback do usuário para melhorar relevância ao longo do tempo.
+**Total:** ~220 arquivos, ~314k linhas de código, 12 subdiretórios em `src/`.
 
-**Princípios:**
-- Código mínimo que resolve o problema
-- Sem funcionalidades extras não solicitadas
-- Manter estilo e convenções existentes
-- Projetos originais inalterados (rollback seguro)
+**Problema:** Código fragmentado, sem padronização, com sobreposição de funcionalidades e sem integração.
 
 ---
 
 ## Fases
 
-### Fase 1 — Fundação (Semana 1-2)
-- [ ] Estrutura de diretórios e configuração base
-- [ ] Módulo de configuração unificado (YAML + .env)
-- [ ] Banco de dados SQLite com schema unificado
+### Fase 1 — Inventário e Limpeza (Semana 1)
+- [ ] Mapear todas as fontes de dados e scrapers
+- [ ] Identificar sobreposções e duplicações
+- [ ] Remover código morto e dependências não utilizadas
+- [ ] Padronizar estrutura de diretórios
+- [ ] Documentar arquitetura atual (como-está)
+
+### Fase 2 — Fundação Unificada (Semana 1-2)
+- [ ] Módulo de configuração centralizado (`.env` + YAML)
+- [ ] Banco de dados SQLite unificado (schema padronizado)
 - [ ] Sistema de deduplicação (hash SHA-256)
 - [ ] Logger e tratamento de erros centralizados
+- [ ] Pipeline de eventos assíncrono
 
-### Fase 2 — Scrapers Unificados (Semana 2-3)
-- [ ] Migrar scrapers GrantWatch (FINEP, CNPq, CAPES, FAPESP, etc.)
-- [ ] Migrar scrapers CognitiaBrain (artigos, PDFs, URLs)
-- [ ] Padronizar interface de scraper (classe base abstrata)
-- [ ] Sistema de agendamento unificado (APScheduler)
-- [ ] Retry com backoff e tratamento de erros
+### Fase 3 — Scrapers Unificados (Semana 2-3)
+- [ ] Classe base abstrata `BaseScraper` (interface única)
+- [ ] Migrar scrapers Python: FINEP, CNPq, CAPES, FAPESP, EMBRAPII, SENAI
+- [ ] Migrar scrapers TypeScript para Python (ou criar bridge)
+- [ ] Integrar coletor IA-Brasil ( Dou, CGEE, MCTI, CGU )
+- [ ] Integrar ETL InvestIA ( Câmara, Senado, DOU )
+- [ ] Retry com backoff, rate limiting, proxy rotation
+- [ ] Testes unitários para cada scraper
 
-### Fase 3 — Classificação ML (Semana 3-4)
+### Fase 4 — Classificação ML (Semana 3-4)
 - [ ] Classificador de relevância (SetFit + MiniLM)
 - [ ] Embeddings unificados (ChromaDB)
 - [ ] Confidence gate (conservador/moderado/agressivo)
 - [ ] Retreinamento incremental (a cada 20 feedbacks)
-- [ ] Avaliação de métricas (precision, recall, F1)
+- [ ] Integrar classificador .NET (buscador_de_grants) via bridge
+- [ ] Métricas: precision, recall, F1
 
-### Fase 4 — Bot Telegram Unificado (Semana 4-5)
-- [ ] Bot único para grants + artigos
+### Fase 5 — Bot Telegram Unificado (Semana 4-5)
+- [ ] Bot único (migrar do CognitiaBrain)
 - [ ] Comandos: /start, /status, /pause, /resume, /help
 - [ ] Botões inline para feedback (👍/👎)
 - [ ] Notificações formatadas com confiança
 - [ ] Conversation memory para diálogos contextuais
+- [ ] Integrar com classifier e deduplicação
 
-### Fase 5 — Dashboard Web (Semana 5-6)
-- [ ] FastAPI + Jinja2 + HTMX
+### Fase 6 — Dashboard Web (Semana 5-6)
+- [ ] FastAPI + Jinja2 + HTMX (ou migrar Next.js)
 - [ ] Visualização de grants + artigos
 - [ ] Filtros por fonte, data, relevância
 - [ ] Métricas de performance
 - [ ] Gestão de foco de pesquisa
 
-### Fase 6 — Inteligência Ativa (Semana 6-7)
+### Fase 7 — Inteligência Ativa (Semana 6-7)
 - [ ] FocusManager (inferência de foco)
 - [ ] Detecção de conexões (cosseno + grafo)
 - [ ] Síntese de escrita por tema
 - [ ] Scout web automatizado
 - [ ] Weekly digest
 
-### Fase 7 — Integração e Polish (Semana 7-8)
+### Fase 8 — Integração e Polish (Semana 7-8)
 - [ ] Testes unitários e e2e
 - [ ] Documentação completa
 - [ ] CI/CD (GitHub Actions)
@@ -69,36 +83,25 @@
 
 ---
 
-## Arquitetura
+## Arquitetura Alvo
 
 ```
 cognitia-brain-unified/
 ├── src/
-│   ├── cognitia/          # Artigos (migrado do cognitia-brain)
-│   │   ├── bot.py         # Telegram bot
-│   │   ├── pipeline.py    # Pipeline de ingestão
-│   │   ├── llm_client.py  # LLM (OpenRouter/Ollama)
-│   │   ├── graph.py       # Knowledge graph
-│   │   └── ...
-│   ├── grants/            # Editais (migrado do grantwatch)
-│   │   ├── finep.ts
-│   │   ├── cnpq.ts
-│   │   ├── capes.ts
-│   │   └── ...
-│   ├── shared/            # Código compartilhado
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── logger.py
-│   │   └── ...
-│   ├── web/               # Dashboard web
-│   │   ├── main.py
-│   │   └── templates/
+│   ├── scrapers/          # TODOS os scrapers unificados (Python)
+│   │   ├── grants/        # FINEP, CNPq, CAPES, FAPESP, etc.
+│   │   ├── artigos/       # arXiv, SemanticScholar, feeds
+│   │   └── gov/           # DOU, CGEE, MCTI, CGU, Câmara, Senado
+│   ├── ml/                # Classificador, embeddings, ChromaDB
+│   ├── bot/               # Telegram bot unificado
+│   ├── web/               # Dashboard (FastAPI ou Next.js)
+│   ├── shared/            # Config, database, logger, eventos
 │   └── scripts/           # Scripts utilitários
 ├── tests/
 ├── docs/
 ├── issues/
-├── data/
-└── models/
+├── data/                  # SQLite + ChromaDB
+└── models/                # Modelos treinados (.pkl)
 ```
 
 ---
@@ -107,7 +110,7 @@ cognitia-brain-unified/
 
 | Componente | Ferramenta | Justificativa |
 |------------|------------|---------------|
-| **Linguagem** | Python 3.11+ | NLP/ML nativo, ChromaDB, scrapers |
+| **Linguagem** | Python 3.11+ | NLP/ML nativo, ChromaDB, unificação |
 | **Bot** | python-telegram-bot v21 | Async, estável, Bot API 7.0+ |
 | **Vector DB** | ChromaDB | Embeddings, busca semântica |
 | **Embeddings** | paraphrase-multilingual-MiniLM-L12-v2 | Multilíngue, CPU-friendly |
@@ -124,11 +127,12 @@ cognitia-brain-unified/
 
 | Métrica | Meta |
 |---------|------|
-| Cobertura de fontes | 9+ scrapers funcionando |
+| Cobertura de fontes | 15+ scrapers funcionando |
 | Deduplicação | 0% de notificações duplicadas |
 | Precisão (relevância) | > 85% de notificações úteis |
 | Latência (scrape → notify) | < 5 minutos |
 | Feedback loop | Retreinamento a cada 20 labels |
+| Código morto | 0% (tudo documentado e testado) |
 
 ---
 
@@ -141,6 +145,7 @@ cognitia-brain-unified/
 | Rate limit Telegram | Batching + retry com backoff |
 | Dados de feedback enviesados | Diversity sampling |
 | Conflito de porta web | Porta canônica 8081 |
+| Complexidade da integração | Fases incrementais, testes a cada fase |
 
 ---
 

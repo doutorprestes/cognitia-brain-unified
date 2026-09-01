@@ -1,21 +1,36 @@
 # Issue #5 — Bot Telegram Unificado
 
-**Labels:** `fase-4`, `telegram`, `bot`
-**Estimate:** 1h
+**Labels:** `fase-5`, `telegram`, `bot`
+**Estimate:** 2h
 
 ## Descrição
 
-Implementar bot Telegram unificado com comandos básicos e notificação de editais/artigos.
+Criar bot Telegram unificado migrando e expandindo a funcionalidade do CognitiaBrain original.
 
 ## Tarefas
 
-- [ ] Criar `src/cognitia/bot.py` com classe `CognitiaBot`
-- [ ] Implementar handler `/start` (mensagem de boas-vindas + instruções)
-- [ ] Implementar handler `/status` (stats: itens coletados, notificados, pendentes)
-- [ ] Implementar handler `/pause` e `/resume` (pausa/retoma notificações)
-- [ ] Implementar handler `/help` (lista de comandos)
-- [ ] Criar função `notificar_item(item)` → envia mensagem formatada
-- [ ] Formato da mensagem: título, fonte, link, snippet, tipo (grant/artigo)
+- [ ] Criar `src/bot/bot.py` com classe `CognitiaBot`
+- [ ] Migrar funcionalidades do CognitiaBrain: /start, /status, /pause, /resume, /help
+- [ ] Adicionar comando /metrics (mostra precision, recall, F1)
+- [ ] Adicionar comando /foco (inferir/add/remove foco de pesquisa)
+- [ ] Adicionar comando /sintese (gerar síntese por tema)
+- [ ] Botões inline para feedback (👍/👎) em todas as notificações
+- [ ] Conversation memory para diálogos contextuais
+- [ ] Notificações formatadas com confiança do classificador
+- [ ] Criar `tests/test_bot.py`
+
+## Comandos
+
+| Comando | Ação |
+|---------|------|
+| `/start` | Mensagem de boas-vindas + instruções |
+| `/status` | Estatísticas: coletados, notificados, pendentes |
+| `/pause` | Pausa notificações |
+| `/resume` | Retoma notificações |
+| `/metrics` | Precision, recall, F1 atuais |
+| `/foco` | Ver/gerenciar foco de pesquisa |
+| `/sintese <tema>` | Gerar síntese de escrita |
+| `/help` | Lista comandos |
 
 ## Formato da Notificação
 
@@ -26,32 +41,23 @@ Implementar bot Telegram unificado com comandos básicos e notificação de edit
 🏛️ Fonte: CAPES
 🔗 Link: https://...
 📝 Snippet: ...
+🎯 Confiança: 87%
 
 [👍 Útil] [👎 Não útil]
 ```
 
-## Comandos
-
-| Comando | Ação |
-|---------|------|
-| `/start` | Mensagem de boas-vindas |
-| `/status` | Estatísticas do sistema |
-| `/pause` | Pausa notificações |
-| `/resume` | Retoma notificações |
-| `/help` | Lista comandos |
-
 ## Critérios de Aceite
 
-- [ ] Bot responde a `/start` com mensagem formatada
-- [ ] `/status` retorna: total itens, notificados, pendentes, com feedback
-- [ ] `/pause` e `/resume` alteram estado (persistir em SQLite)
-- [ ] `notificar_item()` envia mensagem sem erros
-- [ ] Bot roda em polling (para dev) sem crashes
+- [ ] Bot responde a todos os comandos
+- [ ] Feedback inline salva no SQLite
+- [ ] Notificações incluem confiança do classificador
+- [ ] Conversation memory funciona para diálogos
+- [ ] Testes passam: `pytest tests/test_bot.py -v`
 
 ## Output Esperado
 
 ```python
-bot = CognitiaBot(token="...", chat_id="...")
-bot.iniciar()  # Inicia polling
-bot.notificar_item({"title": "...", "url": "...", "source": "CAPES", "type": "grant"})
+bot = CognitiaBot(token=config.TELEGRAM_BOT_TOKEN, chat_id=config.TELEGRAM_CHAT_ID)
+await bot.iniciar()
+await bot.notificar_item({"title": "...", "url": "...", "source": "CAPES", "type": "grant", "confidence": 0.87})
 ```

@@ -1,20 +1,22 @@
-# Issue #4 — Classificador de Relevância (SetFit)
+# Issue #4 — Classificação ML
 
-**Labels:** `fase-3`, `ml`, `classificador`
-**Estimate:** 1h30
+**Labels:** `fase-4`, `ml`, `classificador`
+**Estimate:** 2h
 
 ## Descrição
 
-Implementar classificador de relevância usando SetFit (sentence embeddings + logistic regression) para filtrar editais/artigos úteis vs não-úteis.
+Implementar classificador de relevância usando SetFit + MiniLM para filtrar grants/artigos úteis vs não-úteis.
 
 ## Tarefas
 
-- [ ] Criar `src/shared/classifier.py` com classe `RelevanceClassifier`
+- [ ] Criar `src/ml/classifier.py` com classe `RelevanceClassifier`
 - [ ] Implementar `treinar(textos, labels)` — treina com poucos exemplos
 - [ ] Implementar `prever(texto) → (label, confidence)` — retorna predição e confiança
 - [ ] Implementar `salvar_modelo(path)` e `carregar_modelo(path)`
 - [ ] Criar função de embedding usando `paraphrase-multilingual-MiniLM-L12-v2`
 - [ ] Implementar `get_confidence(text) → float` (probabilidade da classe positiva)
+- [ ] Integrar ChromaDB para busca semântica
+- [ ] Integrar classificador .NET (buscador_de_grants) via bridge se necessário
 - [ ] Criar `tests/test_classifier.py`
 
 ## Modelo Proposto

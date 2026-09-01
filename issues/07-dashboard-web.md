@@ -1,6 +1,6 @@
-# Issue #9 — Dashboard Web
+# Issue #7 — Dashboard Web
 
-**Labels:** `fase-5`, `web`, `dashboard`
+**Labels:** `fase-6`, `web`, `dashboard`
 **Estimate:** 2h
 
 ## Descrição
