@@ -1,0 +1,1 @@
+"""InvestIA backend package."""

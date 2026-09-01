@@ -1,0 +1,315 @@
+﻿{
+  "Scenario": "Classification",
+  "DataSource": {
+    "Version": 3,
+    "EscapeCharacter": "\"",
+    "ReadMultiLines": false,
+    "KeepDiacritics": false,
+    "KeepPunctuations": false,
+    "AllowQuoting": false,
+    "Type": "TabularFile",
+    "FilePath": "C:\\Users\\jpres\\source\\repos\\BuscadorDeEditais\\Grant_finder\\Grant_finder\\grant-data.csv",
+    "Delimiter": ";",
+    "DecimalMarker": ".",
+    "HasHeader": true,
+    "ColumnProperties": [
+      {
+        "ColumnName": "Title",
+        "ColumnPurpose": "Feature",
+        "ColumnDataFormat": "String",
+        "IsCategorical": true,
+        "Type": "Column",
+        "Version": 5
+      },
+      {
+        "ColumnName": "FonteDeRecurso",
+        "ColumnPurpose": "Feature",
+        "ColumnDataFormat": "String",
+        "IsCategorical": true,
+        "Type": "Column",
+        "Version": 5
+      },
+      {
+        "ColumnName": "PublicoAlvo",
+        "ColumnPurpose": "Feature",
+        "ColumnDataFormat": "String",
+        "IsCategorical": true,
+        "Type": "Column",
+        "Version": 5
+      },
+      {
+        "ColumnName": "Category",
+        "ColumnPurpose": "Label",
+        "ColumnDataFormat": "String",
+        "IsCategorical": false,
+        "Type": "Column",
+        "Version": 5
+      }
+    ]
+  },
+  "Environment": {
+    "Type": "LocalCPU",
+    "Version": 1
+  },
+  "RunHistory": {
+    "Version": 3,
+    "Type": "Result",
+    "Trials": [
+      {
+        "Version": 1,
+        "Type": "Trial",
+        "TrainerName": "LbfgsLogisticRegressionOva",
+        "Score": 0.44193549043549041,
+        "RuntimeInSeconds": 0.225,
+        "Parameter": {
+          "_SCHEMA_": "e0 * e1 * e2 * e6 * e10",
+          "e0": {
+            "OutputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ],
+            "InputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ]
+          },
+          "e1": {
+            "InputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ],
+            "OutputColumnName": "Features"
+          },
+          "e10": {
+            "OutputColumnName": "PredictedLabel",
+            "InputColumnName": "PredictedLabel"
+          },
+          "e2": {
+            "OutputColumnName": "Category",
+            "InputColumnName": "Category",
+            "AddKeyValueAnnotationsAsText": false
+          },
+          "e6": {
+            "L1Regularization": 0.0735622,
+            "L2Regularization": 0.2515345,
+            "LabelColumnName": "Category",
+            "FeatureColumnName": "Features"
+          }
+        }
+      },
+      {
+        "Version": 1,
+        "Type": "Trial",
+        "TrainerName": "LbfgsLogisticRegressionOva",
+        "Score": 0.44193549043549041,
+        "RuntimeInSeconds": 0.262,
+        "Parameter": {
+          "_SCHEMA_": "e0 * e1 * e2 * e6 * e10",
+          "e0": {
+            "OutputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ],
+            "InputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ]
+          },
+          "e1": {
+            "InputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ],
+            "OutputColumnName": "Features"
+          },
+          "e10": {
+            "OutputColumnName": "PredictedLabel",
+            "InputColumnName": "PredictedLabel"
+          },
+          "e2": {
+            "OutputColumnName": "Category",
+            "InputColumnName": "Category",
+            "AddKeyValueAnnotationsAsText": false
+          },
+          "e6": {
+            "L1Regularization": 0.0608783,
+            "L2Regularization": 0.20636964,
+            "LabelColumnName": "Category",
+            "FeatureColumnName": "Features"
+          }
+        }
+      },
+      {
+        "Version": 1,
+        "Type": "Trial",
+        "TrainerName": "LbfgsLogisticRegressionOva",
+        "Score": 0.44193549043549041,
+        "RuntimeInSeconds": 0.436,
+        "Parameter": {
+          "_SCHEMA_": "e0 * e1 * e2 * e6 * e10",
+          "e0": {
+            "OutputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ],
+            "InputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ]
+          },
+          "e1": {
+            "InputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ],
+            "OutputColumnName": "Features"
+          },
+          "e10": {
+            "OutputColumnName": "PredictedLabel",
+            "InputColumnName": "PredictedLabel"
+          },
+          "e2": {
+            "OutputColumnName": "Category",
+            "InputColumnName": "Category",
+            "AddKeyValueAnnotationsAsText": false
+          },
+          "e6": {
+            "L1Regularization": 0.0857129,
+            "L2Regularization": 0.22764648,
+            "LabelColumnName": "Category",
+            "FeatureColumnName": "Features"
+          }
+        }
+      },
+      {
+        "Version": 1,
+        "Type": "Trial",
+        "TrainerName": "LbfgsLogisticRegressionOva",
+        "Score": 0.44193549043549041,
+        "RuntimeInSeconds": 0.514,
+        "Parameter": {
+          "_SCHEMA_": "e0 * e1 * e2 * e6 * e10",
+          "e0": {
+            "OutputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ],
+            "InputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ]
+          },
+          "e1": {
+            "InputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ],
+            "OutputColumnName": "Features"
+          },
+          "e10": {
+            "OutputColumnName": "PredictedLabel",
+            "InputColumnName": "PredictedLabel"
+          },
+          "e2": {
+            "OutputColumnName": "Category",
+            "InputColumnName": "Category",
+            "AddKeyValueAnnotationsAsText": false
+          },
+          "e6": {
+            "L1Regularization": 0.063133985,
+            "L2Regularization": 0.2779292,
+            "LabelColumnName": "Category",
+            "FeatureColumnName": "Features"
+          }
+        }
+      },
+      {
+        "Version": 1,
+        "Type": "Trial",
+        "TrainerName": "LbfgsLogisticRegressionOva",
+        "Score": 0.44193549043549041,
+        "RuntimeInSeconds": 0.543,
+        "Parameter": {
+          "_SCHEMA_": "e0 * e1 * e2 * e6 * e10",
+          "e0": {
+            "OutputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ],
+            "InputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ]
+          },
+          "e1": {
+            "InputColumnNames": [
+              "Title",
+              "FonteDeRecurso",
+              "PublicoAlvo"
+            ],
+            "OutputColumnName": "Features"
+          },
+          "e10": {
+            "OutputColumnName": "PredictedLabel",
+            "InputColumnName": "PredictedLabel"
+          },
+          "e2": {
+            "OutputColumnName": "Category",
+            "InputColumnName": "Category",
+            "AddKeyValueAnnotationsAsText": false
+          },
+          "e6": {
+            "L1Regularization": 0.06598052,
+            "L2Regularization": 0.23816977,
+            "LabelColumnName": "Category",
+            "FeatureColumnName": "Features"
+          }
+        }
+      }
+    ],
+    "Estimators": {
+      "e0": "OneHotEncoding",
+      "e1": "Concatenate",
+      "e2": "MapValueToKey",
+      "e3": "FastTreeOva",
+      "e4": "FastForestOva",
+      "e5": "LightGbmMulti",
+      "e6": "LbfgsLogisticRegressionOva",
+      "e7": "LbfgsMaximumEntropyMulti",
+      "e8": "SdcaMaximumEntropyMulti",
+      "e9": "SdcaLogisticRegressionOva",
+      "e10": "MapKeyToValue"
+    },
+    "Schema": "e0 * e1 * e2 * (e3 + e4 + e5 + e6 + e7 + e8 + e9) * e10",
+    "MetricName": "MacroAccuracy",
+    "ModelFilePath": "C:\\Users\\jpres\\source\\repos\\BuscadorDeEditais\\Grant_finder\\Grant_finder\\GrantClassifier.mlnet"
+  },
+  "Type": "TrainingConfig",
+  "Version": 5,
+  "TrainingOption": {
+    "Version": 2,
+    "Subsampling": false,
+    "Type": "ClassificationTrainingOption",
+    "TrainingTime": 180,
+    "LabelColumn": "Category",
+    "ValidationOption": {
+      "Version": 0,
+      "Type": "CrossValidationValidationOption",
+      "NumberOfFolds": 5
+    }
+  }
+}

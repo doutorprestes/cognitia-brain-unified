@@ -1,0 +1,11 @@
+{
+  "source_id": "senado_legislativo",
+  "source_name": "Senado Federal - Dados Abertos",
+  "official_url": "https://legis.senado.leg.br/dadosabertos/materia/pesquisa/lista",
+  "collection_method": "API JSON por termo de busca",
+  "schema_version": "1.1",
+  "collected_at": "2026-05-18T09:30:37.219683+00:00",
+  "raw_count": 8874,
+  "processed_count": 1143,
+  "known_limitations": "Busca restrita a termos de IA/CT&I para reduzir ruído; datas históricas dependem da cobertura da pesquisa por termo."
+}

@@ -17,20 +17,6 @@ Implementar retreinamento incremental do classificador a cada N novos feedbacks,
 - [ ] Salvar métricas após cada retreinamento na tabela `model_metrics`
 - [ ] Criar `tests/test_retraining.py`
 
-## Estratégia de Retreinamento
-
-```python
-def retreinar_se_necessario():
-    novos_labels = db.contar_labels_desde_ultimo_treino()
-    if novos_labels >= 20:
-        # Carrega todos os dados (não só os novos)
-        todos_texts, todos_labels = db.obter_todos_labels()
-        classifier.treinar(todos_texts, todos_labels)
-        versao = db.obter_proxima_versao()
-        classifier.salvar_modelo(f"models/v{versao}.pkl")
-        logger.info(f"Modelo v{versao} treinado com {len(todos_labels)} amostras")
-```
-
 ## Critérios de Aceite
 
 - [ ] Retreinamento dispara automaticamente após 20 novos labels

@@ -4,7 +4,7 @@
 
 ## Visão Geral
 
-**Problema:** Editais de fomento e artigos científicos são monitorados em sistemas separados, com bots Telegram diferentes, sem compartilhamento de inteligência ou aprendizado cruzado.
+**Problema:** Editais de fomento e artigos científicos são monitorados em sistemas separados (CognitiaBrain, GrantWatch, IA-Brasil, InvestIA, etc.), com bots Telegram diferentes, sem compartilhamento de inteligência ou aprendizado cruzado.
 
 **Objetivo:** Pipeline unificado que coleta, classifica e notifica sobre grants E artigos, aprendendo com feedback do usuário para melhorar relevância ao longo do tempo.
 
@@ -144,10 +144,21 @@ cognitia-brain-unified/
 
 ---
 
-## Referências
+## Projetos Originais (Inalterados)
 
 - [CognitiaBrain](https://github.com/doutorprestes/cognitia-brain) — monitor de artigos
 - [GrantWatch](https://github.com/doutorprestes/grantwatch) — monitor de editais
+- [IA-Brasil](https://github.com/doutorprestes/ia-brasil) — dados públicos brasileiros
+- [InvestIA](https://github.com/doutorprestes/investia) — dados de investimento
+- [buscador_de_grants](https://github.com/doutorprestes/buscador-de-grants) — buscador .NET
+- [grantwatch_evolution](https://github.com/doutorprestes/grantwatch-evolution) — dashboard Next.js
+- [inteligencia-ai](https://github.com/doutorprestes/inteligencia-ai) — scrapers + webapp
+
+---
+
+## Referências
+
 - [Scrapy](https://scrapy.org/) — framework de scraping
 - [ChromaDB](https://trychroma.com/) — vector database
 - [SetFit](https://github.com/huggingface/setfit) — few-shot classification
+- [python-telegram-bot](https://python-telegram-bot.org/) — bot framework
