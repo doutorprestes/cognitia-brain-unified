@@ -1,20 +1,20 @@
-"""FINEP scraper - real implementation."""
+"""CNPq scraper."""
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 from ..shared.scraper_base import BaseScraper
 
-class FinepScraper(BaseScraper):
+class CnpqScraper(BaseScraper):
     @property
     def nome(self) -> str:
-        return 'FINEP'
+        return 'CNPq'
     
     @property
     def tipo(self) -> str:
         return 'grant'
     
     def coletar(self) -> list[dict]:
-        url = 'https://www.finep.gov.br/chamadas-publicas'
+        url = 'https://www.gov.br/cnpq/pt-br/assuntos/chamadas-publicas'
         items = []
         try:
             with sync_playwright() as p:
@@ -26,15 +26,14 @@ class FinepScraper(BaseScraper):
                 browser.close()
             
             soup = BeautifulSoup(html, 'html.parser')
-            for h2 in soup.find_all('h2'):
-                title = h2.get_text(strip=True)
+            for link in soup.select("a[href*='chamada'], a[href*='edital']"):
+                title = link.get_text(strip=True)
+                href = link.get('href', '')
                 if not title or len(title) < 10:
                     continue
-                parent = h2.find_parent('a') or h2.find_next('a')
-                href = parent.get('href', '') if parent else ''
                 if href and not href.startswith('http'):
-                    href = urljoin('https://www.finep.gov.br', href)
-                items.append({'title': title, 'url': href, 'source': 'FINEP', 'type': 'grant', 'snippet': ''})
+                    href = urljoin('https://www.gov.br', href)
+                items.append({'title': title, 'url': href, 'source': 'CNPq', 'type': 'grant', 'snippet': ''})
         except Exception as e:
-            print(f'[FINEP] Error: {e}')
+            print(f'[CNPq] Error: {e}')
         return items

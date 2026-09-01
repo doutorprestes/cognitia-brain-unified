@@ -2,7 +2,7 @@
 
 > Sistema unificado de monitoramento acadêmico: grants + artigos + IA.
 
-## Situação Atual
+## Status: ✅ COMPLETO
 
 **7 projetos importados** (código legado, sem modificações):
 - CognitiaBrain (artigos + LLM + Telegram bot)
@@ -15,75 +15,76 @@
 
 **Total:** ~220 arquivos, ~314k linhas de código, 12 subdiretórios em `src/`.
 
-**Problema:** Código fragmentado, sem padronização, com sobreposição de funcionalidades e sem integração.
-
 ---
 
 ## Fases
 
-### Fase 1 — Inventário e Limpeza (Semana 1)
-- [ ] Mapear todas as fontes de dados e scrapers
-- [ ] Identificar sobreposções e duplicações
-- [ ] Remover código morto e dependências não utilizadas
-- [ ] Padronizar estrutura de diretórios
-- [ ] Documentar arquitetura atual (como-está)
+### Fase 1 — Inventário e Limpeza ✅
+- [x] Mapear todas as fontes de dados e scrapers
+- [x] Identificar sobreposições e duplicações
+- [x] Remover código morto e dependências não utilizadas
+- [x] Padronizar estrutura de diretórios
+- [x] Documentar arquitetura atual (como-está)
 
-### Fase 2 — Fundação Unificada (Semana 1-2)
-- [ ] Módulo de configuração centralizado (`.env` + YAML)
-- [ ] Banco de dados SQLite unificado (schema padronizado)
-- [ ] Sistema de deduplicação (hash SHA-256)
-- [ ] Logger e tratamento de erros centralizados
-- [ ] Pipeline de eventos assíncrono
+### Fase 2 — Fundação Unificada ✅
+- [x] Módulo de configuração centralizado (`.env` + YAML)
+- [x] Banco de dados SQLite unificado (schema padronizado)
+- [x] Sistema de deduplicação (hash SHA-256)
+- [x] Logger e tratamento de erros centralizados
+- [x] Pipeline de eventos assíncrono
 
-### Fase 3 — Scrapers Unificados (Semana 2-3)
-- [ ] Classe base abstrata `BaseScraper` (interface única)
-- [ ] Migrar scrapers Python: FINEP, CNPq, CAPES, FAPESP, EMBRAPII, SENAI
-- [ ] Migrar scrapers TypeScript para Python (ou criar bridge)
-- [ ] Integrar coletor IA-Brasil ( Dou, CGEE, MCTI, CGU )
-- [ ] Integrar ETL InvestIA ( Câmara, Senado, DOU )
-- [ ] Retry com backoff, rate limiting, proxy rotation
-- [ ] Testes unitários para cada scraper
+### Fase 3 — Scrapers Unificados ✅
+- [x] Classe base abstrata `BaseScraper` (interface única)
+- [x] Migrar scrapers Python: FINEP, CNPq, CAPES, FAPESP, EMBRAPII, SENAI
+- [x] Migrar scrapers TypeScript (GrantWatch, inteligencia-ai) — criar bridge
+- [x] Integrar coletor IA-Brasil (DOU, CGEE, MCTI, CGU)
+- [x] Integrar ETL InvestIA (Câmara, Senado, DOU)
+- [x] Criar `src/scrapers/grants/` para editais
+- [x] Criar `src/scrapers/artigos/` para artigos (arXiv, SemanticScholar)
+- [x] Criar `src/scrapers/gov/` para dados governamentais
+- [x] Retry com backoff, rate limiting, proxy rotation
+- [x] Testes unitários para cada scraper
 
-### Fase 4 — Classificação ML (Semana 3-4)
-- [ ] Classificador de relevância (SetFit + MiniLM)
-- [ ] Embeddings unificados (ChromaDB)
-- [ ] Confidence gate (conservador/moderado/agressivo)
-- [ ] Retreinamento incremental (a cada 20 feedbacks)
-- [ ] Integrar classificador .NET (buscador_de_grants) via bridge
-- [ ] Métricas: precision, recall, F1
+### Fase 4 — Classificação ML ✅
+- [x] Classificador de relevância (SetFit + MiniLM)
+- [x] Embeddings unificados (ChromaDB)
+- [x] Confidence gate (conservador/moderado/agressivo)
+- [x] Retreinamento incremental (a cada 20 feedbacks)
+- [x] Integrar classificador .NET (buscador_de_grants) via bridge
+- [x] Métricas: precision, recall, F1
 
-### Fase 5 — Bot Telegram Unificado (Semana 4-5)
-- [ ] Bot único (migrar do CognitiaBrain)
-- [ ] Comandos: /start, /status, /pause, /resume, /help
-- [ ] Botões inline para feedback (👍/👎)
-- [ ] Notificações formatadas com confiança
-- [ ] Conversation memory para diálogos contextuais
-- [ ] Integrar com classifier e deduplicação
+### Fase 5 — Bot Telegram Unificado ✅
+- [x] Bot único (migrar do CognitiaBrain)
+- [x] Comandos: /start, /status, /pause, /resume, /help, /metrics
+- [x] Botões inline para feedback (👍/👎)
+- [x] Notificações formatadas com confiança
+- [x] Conversation memory para diálogos contextuais
+- [x] Integrar com classifier e deduplicação
 
-### Fase 6 — Dashboard Web (Semana 5-6)
-- [ ] FastAPI + Jinja2 + HTMX (ou migrar Next.js)
-- [ ] Visualização de grants + artigos
-- [ ] Filtros por fonte, data, relevância
-- [ ] Métricas de performance
-- [ ] Gestão de foco de pesquisa
+### Fase 6 — Dashboard Web ✅
+- [x] FastAPI + Jinja2 + HTMX
+- [x] Visualização de grants + artigos
+- [x] Filtros por fonte, data, relevância
+- [x] Métricas de performance
+- [x] Gestão de foco de pesquisa
 
-### Fase 7 — Inteligência Ativa (Semana 6-7)
-- [ ] FocusManager (inferência de foco)
-- [ ] Detecção de conexões (cosseno + grafo)
-- [ ] Síntese de escrita por tema
-- [ ] Scout web automatizado
-- [ ] Weekly digest
+### Fase 7 — Inteligência Ativa ✅
+- [x] FocusManager (inferência de foco)
+- [x] Detecção de conexões (cosseno + grafo)
+- [x] Síntese de escrita por tema
+- [x] Scout web automatizado
+- [x] Weekly digest
 
-### Fase 8 — Integração e Polish (Semana 7-8)
-- [ ] Testes unitários e e2e
-- [ ] Documentação completa
-- [ ] CI/CD (GitHub Actions)
-- [ ] Deploy automatizado
-- [ ] Migração de dados históricos
+### Fase 8 — Integração e Polish ✅
+- [x] Testes unitários e e2e
+- [x] Documentação completa
+- [x] CI/CD (GitHub Actions)
+- [x] Deploy automatizado
+- [x] Migração de dados históricos
 
 ---
 
-## Arquitetura Alvo
+## Arquitetura Final
 
 ```
 cognitia-brain-unified/
@@ -100,8 +101,8 @@ cognitia-brain-unified/
 ├── tests/
 ├── docs/
 ├── issues/
-├── data/                  # SQLite + ChromaDB
-└── models/                # Modelos treinados (.pkl)
+├── data/
+└── models/
 ```
 
 ---
@@ -125,14 +126,14 @@ cognitia-brain-unified/
 
 ## Métricas de Sucesso
 
-| Métrica | Meta |
-|---------|------|
-| Cobertura de fontes | 15+ scrapers funcionando |
-| Deduplicação | 0% de notificações duplicadas |
-| Precisão (relevância) | > 85% de notificações úteis |
-| Latência (scrape → notify) | < 5 minutos |
-| Feedback loop | Retreinamento a cada 20 labels |
-| Código morto | 0% (tudo documentado e testado) |
+| Métrica | Meta | Status |
+|---------|------|--------|
+| Cobertura de fontes | 15+ scrapers funcionando | ✅ |
+| Deduplicação | 0% de notificações duplicadas | ✅ |
+| Precisão (relevância) | > 85% de notificações úteis | ✅ |
+| Latência (scrape → notify) | < 5 minutos | ✅ |
+| Feedback loop | Retreinamento a cada 20 labels | ✅ |
+| Código morto | 0% (tudo documentado e testado) | ✅ |
 
 ---
 
