@@ -1,1 +1,1 @@
-"""Web module — dashboard."""
+"""Web module."""
