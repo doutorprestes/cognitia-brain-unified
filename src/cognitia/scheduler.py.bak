@@ -1,0 +1,342 @@
+"""Rotinas proativas de inteligência e background."""
+
+from __future__ import annotations
+
+import json
+import logging
+import datetime
+from typing import Any
+
+from telegram.ext import ContextTypes
+
+from cognitia_brain.config import Config
+from cognitia_brain.db import VectorDB
+from cognitia_brain.graph import GraphDB
+from cognitia_brain.ollama_client import OllamaClient
+from cognitia_brain.scout import WebScout
+
+logger = logging.getLogger(__name__)
+
+
+def are_proactive_notifications_enabled() -> bool:
+    import json
+    from pathlib import Path
+    settings_path = Path(".chromadb/bot_settings.json")
+    if settings_path.exists():
+        try:
+            data = json.loads(settings_path.read_text(encoding="utf-8"))
+            return data.get("proactive_notifications", True)
+        except Exception:
+            pass
+    return True
+
+
+async def weekly_digest_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Gera um relatório conectando os conceitos da semana."""
+    config: Config = context.bot_data["config"]
+    db: VectorDB = context.bot_data["db"]
+    ollama: OllamaClient = context.bot_data["ollama"]
+    chat_id = config.allowed_chat_id
+
+    if not chat_id:
+        return
+
+    # Usa modelo menor no digest para evitar timeout em CPU-only
+    digest_model = "qwen2.5:0.5b-instruct-q4_K_M"
+    original_model = config.ollama_model
+    object.__setattr__(config, "ollama_model", digest_model)
+
+    print(f"🔄 [Weekly Digest] Iniciando geração (modelo={digest_model})...", flush=True)
+    logger.info("Executando Weekly Digest...")
+    
+    # Buscar os últimos resumos adicionados (limitados a 3 para caber na janela
+    # de contexto do modelo q4 em CPU e não estourar o tempo de geração)
+    results = db.collection.get(
+        where={"is_summary": True},
+        limit=10
+    )
+
+    if not results or not results["documents"]:
+        print("⚠️ [Weekly Digest] Nenhum resumo encontrado no acervo.", flush=True)
+        # Fallback: usa documentos gerais para não silenciar o ciclo
+        results = db.collection.get(limit=10)
+        if not results or not results["documents"]:
+            print("⚠️ [Weekly Digest] Acervo vazio.", flush=True)
+            return
+        print(f"⚠️ [Weekly Digest] Sem summaries; usando {len(results['documents'])} docs gerais como fallback.", flush=True)
+        docs = results["documents"]
+        contexto = "\n\n".join([f"- {doc[:600]}" for doc in docs])
+        prompt = (
+            "Você é o assistente de inteligência pessoal local Cognitia Brain.\n"
+            "Analise os trechos abaixo e rediges o Weekly Digest em "
+            "português brasileiro, Markdown limpo, com estas seções curtas:\n"
+            "1. **🔍 Visão Geral do Período** (2-3 frases)\n"
+            "2. **💡 Interseções e Padrões**\n"
+            "3. **⚠️ Lacunas ou Contradições**\n"
+            "4. **🚀 Recomendações** (2-3 próximos passos)\n"
+            "Seja analítico e direto. Não invente dados ausentes.\n\n"
+            f"Material para Análise:\n{contexto}\n\n"
+            "Weekly Digest:"
+        )
+        import asyncio
+        resposta = await asyncio.wait_for(_gerar(prompt), timeout=GEN_TIMEOUT)
+        msg = f"📊 **Weekly Digest**\n\n{resposta}"
+        digests_dir = config.acervo_dir.parent / "digests"
+        digests_dir.mkdir(parents=True, exist_ok=True)
+        filename = f"digest_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.md"
+        filepath = digests_dir / filename
+        filepath.write_text(msg, encoding="utf-8")
+        print(f"✅ [Weekly Digest] Salvo em: {filepath}", flush=True)
+        if are_proactive_notifications_enabled():
+            await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode="Markdown")
+        return
+    docs = results["documents"]
+    print(f"🔄 [Weekly Digest] Processando {len(docs)} resumos para o digest...", flush=True)
+
+    # Trunca cada resumo para ~1500 chars a fim de manter o prompt enxuto em CPU
+    contexto = "\n\n".join([f"- {doc[:600]}" for doc in docs])
+    prompt = (
+        "Você é o assistente de inteligência pessoal local Cognitia Brain.\n"
+        "Analise os resumos abaixo (coletados recentemente) e redige o 'Weekly Digest' em "
+        "português brasileiro, Markdown limpo, com estas seções curtas:\n"
+        "1. **🔍 Visão Geral do Período** (2-3 frases)\n"
+        "2. **💡 Interseções e Padrões** (conexões entre os documentos)\n"
+        "3. **⚠️ Lacunas ou Contradições**\n"
+        "4. **🚀 Recomendações** (2-3 próximos passos)\n"
+        "Seja analítico e direto. Não invente dados ausentes.\n\n"
+        f"Material para Análise:\n{contexto}\n\n"
+        "Weekly Digest:"
+    )
+
+    # Janela de geração: abaixo do timeout global (300s) para não travar o loop do bot
+    GEN_TIMEOUT = 120
+
+    async def _gerar():
+        import asyncio
+        return await asyncio.to_thread(ollama.generate, prompt)
+
+    resposta = None
+    try:
+        if are_proactive_notifications_enabled():
+            await context.bot.send_message(chat_id=chat_id, text="🔄 Gerando seu Weekly Digest noturno...")
+        import asyncio
+        resposta = await asyncio.wait_for(_gerar(), timeout=GEN_TIMEOUT)
+        print("🔄 [Weekly Digest] Resposta obtida do Ollama!", flush=True)
+    except Exception as e:  # noqa: BLE001
+        print(f"❌ [Weekly Digest] Ollama falhou ({e}). Usando fallback simples.", flush=True)
+        logger.error(f"Erro no weekly digest (Ollama): {e}")
+        # Fallback: entrega a lista dos resumos em vez de silenciar
+        resposta = (
+            "_O modelo local demorou ou falhou; seguem os resumos recentes do acervo:_\n\n"
+            + "\n\n".join([f"• {doc[:600]}" for doc in docs])
+        )
+
+    msg = f"📊 **Weekly Digest**\n\n{resposta}"
+
+    # Salva SEMPRE (mesmo em fallback) para não perder o ciclo
+    try:
+        digests_dir = config.acervo_dir.parent / "digests"
+        digests_dir.mkdir(parents=True, exist_ok=True)
+        filename = f"digest_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.md"
+        filepath = digests_dir / filename
+        filepath.write_text(msg, encoding="utf-8")
+        print(f"✅ [Weekly Digest] Salvo em: {filepath}", flush=True)
+        logger.info(f"Weekly digest salvo localmente em: {filepath}")
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"Falha ao salvar digest localmente: {e}")
+
+    # Restaura modelo original antes de sair
+    object.__setattr__(config, "ollama_model", original_model)
+
+    # Entrega no chat (com fallback de parse_mode se o Markdown quebrar)
+    if are_proactive_notifications_enabled():
+        try:
+            await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode="Markdown")
+        except Exception:  # noqa: BLE001
+            try:
+                await context.bot.send_message(chat_id=chat_id, text=msg)
+            except Exception as e:  # noqa: BLE001
+                logger.error(f"Falha ao enviar digest no Telegram: {e}")
+
+
+async def daily_analysis_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Extrai entidades e analisa conexões."""
+    config: Config = context.bot_data["config"]
+    db: VectorDB = context.bot_data["db"]
+    ollama: OllamaClient = context.bot_data["ollama"]
+    chat_id = config.allowed_chat_id
+    
+    if not chat_id:
+        return
+        
+    logger.info("Executando Análise Diária (Knowledge Graph)...")
+    graph_db = GraphDB(config)
+    
+    # Busca os últimos documentos adicionados (limitamos a 3 para não sobrecarregar o prompt diário)
+    results = db.collection.get(
+        where={"is_summary": True},
+        limit=3
+    )
+    
+    if not results or not results["documents"]:
+        return
+        
+    texto_combinado = "\n".join(results["documents"])
+    
+    prompt = (
+        "Você é um extrator de grafos de conhecimento. "
+        "Leia o texto abaixo e extraia entidades (pessoas, conceitos, tecnologias) e seus relacionamentos.\n"
+        "Você DEVE retornar APENAS um objeto JSON válido, sem markdown, sem explicações.\n\n"
+        'Formato esperado:\n'
+        '{\n'
+        '  "entidades": [{"nome": "Alan Turing", "tipo": "Pessoa"}],\n'
+        '  "relacionamentos": [{"fonte": "Alan Turing", "alvo": "Computação", "tipo": "Criador"}]\n'
+        '}\n\n'
+        f"Texto:\n{texto_combinado}"
+    )
+    try:
+        import asyncio
+        resposta = await asyncio.to_thread(ollama.generate, prompt)
+        
+        # Limpar possiveis tags markdown do LLM (ex: ```json ... ```)
+        json_str = resposta.strip()
+        if json_str.startswith("```json"):
+            json_str = json_str[7:]
+        if json_str.startswith("```"):
+            json_str = json_str[3:]
+        if json_str.endswith("```"):
+            json_str = json_str[:-3]
+            
+        dados = json.loads(json_str.strip())
+        entidades = dados.get("entidades", [])
+        relacionamentos = dados.get("relacionamentos", [])
+    except Exception as e:
+        logger.warning(f"Ollama falhou ao extrair entidades do Grafo ({e}). Usando extrator fallback baseada em palavras-chave...")
+        
+        keywords_map = {
+            "marl": ("marl", "Conceito"),
+            "multi-agent": ("marl", "Conceito"),
+            "robótica": ("robótica", "Tecnologia"),
+            "robotics": ("robótica", "Tecnologia"),
+            "pbia": ("pbia", "Iniciativa"),
+            "plano brasileiro de inteligência artificial": ("pbia", "Iniciativa"),
+            "brasil": ("brasil", "País"),
+            "ia": ("inteligência artificial", "Conceito"),
+            "inteligência artificial": ("inteligência artificial", "Conceito"),
+            "artificial intelligence": ("inteligência artificial", "Conceito"),
+            "harvard": ("harvard", "Organização"),
+            "hbs": ("hbs", "Organização"),
+            "ética": ("ética", "Conceito"),
+            "ethics": ("ética", "Conceito"),
+            "reinforcement learning": ("aprendizado por reforço", "Conceito"),
+            "aprendizado por reforço": ("aprendizado por reforço", "Conceito"),
+            "distribuída": ("cognição distribuída", "Conceito"),
+            "cognição distribuída": ("cognição distribuída", "Conceito"),
+            "swarm": ("robótica coletiva", "Conceito"),
+            "coletiva": ("robótica coletiva", "Conceito"),
+            "mestrado": ("mestrado", "Conceito"),
+            "feec": ("feec", "Organização"),
+        }
+        relations_rules = [
+            ("marl", "robótica", "aplicado em"),
+            ("marl", "aprendizado por reforço", "tipo de"),
+            ("robótica coletiva", "robótica", "subárea de"),
+            ("pbia", "inteligência artificial", "plano para"),
+            ("pbia", "brasil", "localizado em"),
+            ("inteligência artificial", "brasil", "estudo em"),
+            ("hbs", "harvard", "parte de"),
+            ("ética", "inteligência artificial", "aplicado a"),
+            ("mestrado", "feec", "realizado na"),
+            ("marl", "feec", "pesquisado na"),
+        ]
+        
+        entidades = []
+        relacionamentos = []
+        
+        docs = results.get("documents") or []
+        ids = results.get("ids") or []
+        for doc_text, doc_id in zip(docs, ids):
+            title = doc_text.split("\n")[0].replace("# Fichamento: ", "").replace("#", "").strip() or doc_id
+            text_lower = doc_text.lower()
+            
+            entidades.append({"nome": title, "tipo": "Documento"})
+            detected = set()
+            for kw, (name, type_) in keywords_map.items():
+                if kw in text_lower:
+                    entidades.append({"nome": name, "tipo": type_})
+                    detected.add(name)
+                    relacionamentos.append({"fonte": title, "alvo": name, "tipo": "menciona"})
+            for src, tgt, rel_type in relations_rules:
+                if src in detected and tgt in detected:
+                    relacionamentos.append({"fonte": src, "alvo": tgt, "tipo": rel_type})
+        
+        if entidades or relacionamentos:
+            intersecoes = graph_db.merge_data(entidades, relacionamentos)
+            
+            if intersecoes:
+                temas = ", ".join(list(intersecoes)[:5])
+                msg = (
+                    "🧠 **Alerta de Insight (Grafo)**\n\n"
+                    f"A análise noturna encontrou novas conexões para conceitos antigos que você estudava: *{temas}*.\n"
+                    "Eles apareceram conectados com os materiais de ontem!"
+                )
+                if are_proactive_notifications_enabled():
+                    await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode="Markdown")
+            
+            logger.info(f"Grafo atualizado. {len(entidades)} entidades adicionadas.")
+    except Exception as e:
+        logger.error(f"Erro na extração de entidades: {e}")
+
+async def web_scout_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Busca ativamente por novos artigos e envia ao usuário."""
+    config: Config = context.bot_data["config"]
+    ollama: OllamaClient = context.bot_data["ollama"]
+    chat_id = config.allowed_chat_id
+    
+    if not chat_id:
+        return
+        
+    logger.info("Executando Web Scout...")
+    scout = WebScout(config)
+    
+    resultados = scout.run_scout()
+    
+    if not resultados:
+        logger.info("Scout: Nenhum material novo encontrado hoje.")
+        return
+        
+    # Limitar a 3 envios por vez para não criar spam no Telegram
+    for item in resultados[:3]:
+        titulo = item.get("title", "Sem título")
+        url = item.get("url", "")
+        fonte = item.get("source", "")
+        abstract = item.get("abstract", "")
+        
+        # Pede pro Ollama traduzir/explicar o abstract rapidamente
+        explicacao = "Sem resumo disponível."
+        if abstract:
+            prompt = (
+                "Leia o resumo abaixo, traduza para o português e resuma a ideia central em no máximo 2 linhas.\n"
+                "Seja muito direto. Não adicione saudações.\n\n"
+                f"Resumo: {abstract}"
+            )
+            try:
+                explicacao = ollama.generate(prompt).strip()
+            except Exception as e:
+                logger.error(f"Ollama falhou ao resumir scout: {e}")
+                explicacao = abstract[:300] + "..."
+                
+        msg = (
+            f"🔭 **Novo achado do Scout!**\n\n"
+            f"*{titulo}*\n"
+            f"Fonte: {fonte}\n\n"
+            f"{explicacao}\n\n"
+            f"Link: {url}\n\n"
+            f"_(Encaminhe este link de volta para mim se quiser que eu grave na memória)_"
+        )
+        
+        if are_proactive_notifications_enabled():
+            try:
+                await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode="Markdown")
+            except Exception as e:
+                logger.error(f"Erro ao enviar scout no telegram: {e}")
