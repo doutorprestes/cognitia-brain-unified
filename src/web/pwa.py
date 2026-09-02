@@ -19,7 +19,6 @@ pwa_app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="
 
 
 def validate_telegram_init_data(init_data: str, bot_token: str) -> dict:
-    """Validate Telegram WebApp initData."""
     if not init_data:
         raise HTTPException(status_code=401, detail="No initData")
     
@@ -35,17 +34,8 @@ def validate_telegram_init_data(init_data: str, bot_token: str) -> dict:
     
     data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(params.items()))
     
-    secret_key = hmac.new(
-        key=b"WebAppData",
-        msg=bot_token.encode(),
-        digestmod=hashlib.sha256
-    ).digest()
-    
-    expected_hash = hmac.new(
-        key=secret_key,
-        msg=data_check_string.encode(),
-        digestmod=hashlib.sha256
-    ).hexdigest()
+    secret_key = hmac.new(key=b"WebAppData", msg=bot_token.encode(), digestmod=hashlib.sha256).digest()
+    expected_hash = hmac.new(key=secret_key, msg=data_check_string.encode(), digestmod=hashlib.sha256).hexdigest()
     
     if expected_hash != check_hash:
         raise HTTPException(status_code=401, detail="Invalid hash")
@@ -79,22 +69,15 @@ async def items(type: str = "all", limit: int = 20, offset: int = 0):
     db = UnifiedDatabase()
     item_type = None if type == "all" else type
     unnotified = db.get_unnotified(item_type)
-    
-    # Aplicar filtro de relevância
     itens_filtrados = relevancia_engine.filtrar(unnotified, threshold=0.1)
-    
-    # Paginação
     total = len(itens_filtrados)
     itens_paginados = itens_filtrados[offset:offset + limit]
     
     result = []
     for item in itens_paginados:
         result.append({
-            "hash": item["hash"],
-            "title": item["title"],
-            "url": item["url"],
-            "source": item["source"],
-            "type": item["type"],
+            "hash": item["hash"], "title": item["title"], "url": item["url"],
+            "source": item["source"], "type": item["type"],
             "snippet": item.get("snippet", ""),
             "scraped_at": str(item.get("scraped_at", "")),
         })
@@ -102,51 +85,63 @@ async def items(type: str = "all", limit: int = 20, offset: int = 0):
 
 
 @pwa_app.get("/api/search")
-async def search(q: str = "", type: str = "all", period: str = "all", limit: int = 20, offset: int = 0):
-    """Busca artigos por título, snippet, source."""
+async def search(q: str = "", type: str = "all", limit: int = 20, offset: int = 0):
     db = UnifiedDatabase()
     item_type = None if type == "all" else type
-    
-    # Buscar no banco
     results = db.search(q, item_type)
-    
-    # Paginação
     total = len(results)
     results_paginated = results[offset:offset + limit]
     
     items = []
     for item in results_paginated:
         items.append({
-            "hash": item["hash"],
-            "title": item["title"],
-            "url": item["url"],
-            "source": item["source"],
-            "type": item["type"],
+            "hash": item["hash"], "title": item["title"], "url": item["url"],
+            "source": item["source"], "type": item["type"],
             "snippet": item.get("snippet", ""),
             "scraped_at": str(item.get("scraped_at", "")),
         })
-    
     return {"items": items, "total": total, "offset": offset, "limit": limit, "query": q}
 
 
 @pwa_app.get("/api/profile/{user_id}")
 async def get_profile(user_id: str):
-    """Obtém perfil do usuário."""
     db = UnifiedDatabase()
-    profile = db.get_user_profile(user_id)
-    return profile
+    return db.get_user_profile(user_id)
 
 
 @pwa_app.put("/api/profile/{user_id}")
 async def update_profile(user_id: str, request: Request):
-    """Atualiza perfil do usuário."""
     data = await request.json()
-    interests = data.get("interests", [])
-    stats = data.get("stats", {})
-    
     db = UnifiedDatabase()
-    db.save_user_profile(user_id, interests, stats)
-    return {"ok": True, "user_id": user_id}
+    profile = db.get_user_profile(user_id)
+    interests = data.get("interests", profile.get("interests", []))
+    stats = data.get("stats", profile.get("stats", {}))
+    config_data = data.get("config", profile.get("config", {}))
+    db.save_user_profile(user_id, interests, stats, config_data)
+    return {"ok": True}
+
+
+@pwa_app.get("/api/config/{user_id}")
+async def get_config(user_id: str):
+    db = UnifiedDatabase()
+    profile = db.get_user_profile(user_id)
+    return profile.get("config") or {
+        "theme": "dark",
+        "language": "pt-BR",
+        "notifications": True,
+        "frequency": "6h"
+    }
+
+
+@pwa_app.put("/api/config/{user_id}")
+async def update_config(user_id: str, request: Request):
+    data = await request.json()
+    db = UnifiedDatabase()
+    profile = db.get_user_profile(user_id)
+    interests = profile.get("interests", [])
+    stats = profile.get("stats", {})
+    db.save_user_profile(user_id, interests, stats, data)
+    return {"ok": True}
 
 
 @pwa_app.post("/api/feedback")

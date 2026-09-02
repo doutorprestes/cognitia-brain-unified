@@ -60,7 +60,7 @@
 - [ ] #018 Adicionar filtro por agência fomentadora
 - [ ] #019 Implementar alertas de novos editais (notificação Telegram)
 
-### Sprint 3 — Perfil
+### Sprint 3 — Perfil ✅
 - [ ] #020 Criar endpoint GET/PUT /api/profile
 - [ ] #021 Criar UI de perfil (áreas de interesse, estatísticas)
 - [ ] #022 Implementar seleção de áreas de interesse (checkboxes)

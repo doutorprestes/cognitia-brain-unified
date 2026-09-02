@@ -59,6 +59,7 @@ class UnifiedDatabase:
                     user_id TEXT PRIMARY KEY,
                     interests TEXT DEFAULT '[]',
                     stats TEXT DEFAULT '{}',
+                    config TEXT DEFAULT '{}',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
@@ -101,7 +102,6 @@ class UnifiedDatabase:
             conn.execute('UPDATE items SET notified_at = CURRENT_TIMESTAMP WHERE hash = ?', (item_hash,))
 
     def search(self, query: str, item_type: Optional[str] = None) -> list:
-        """Busca por título, snippet ou source."""
         with self._connection() as conn:
             search_term = f'%{query.lower()}%'
             if item_type:
@@ -144,7 +144,6 @@ class UnifiedDatabase:
             return cursor.fetchone()[0]
 
     def get_user_profile(self, user_id: str) -> dict:
-        """Obtém perfil do usuário."""
         with self._connection() as conn:
             cursor = conn.execute('SELECT * FROM user_profiles WHERE user_id = ?', (user_id,))
             row = cursor.fetchone()
@@ -153,18 +152,18 @@ class UnifiedDatabase:
                     'user_id': row['user_id'],
                     'interests': json.loads(row['interests']),
                     'stats': json.loads(row['stats']),
+                    'config': json.loads(row['config']),
                     'created_at': row['created_at'],
                     'updated_at': row['updated_at']
                 }
-            return {'user_id': user_id, 'interests': [], 'stats': {}}
+        return {'user_id': user_id, 'interests': [], 'stats': {}, 'config': {}}
 
-    def save_user_profile(self, user_id: str, interests: list, stats: dict):
-        """Salva perfil do usuário."""
+    def save_user_profile(self, user_id: str, interests: list, stats: dict, config: dict = None):
         with self._connection() as conn:
             conn.execute('''
-                INSERT OR REPLACE INTO user_profiles (user_id, interests, stats, updated_at)
-                VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-            ''', (user_id, json.dumps(interests), json.dumps(stats)))
+                INSERT OR REPLACE INTO user_profiles (user_id, interests, stats, config, updated_at)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ''', (user_id, json.dumps(interests), json.dumps(stats), json.dumps(config or {})))
 
     def save_metrics(self, accuracy: float, precision: float, recall: float, n_samples: int):
         with self._connection() as conn:
