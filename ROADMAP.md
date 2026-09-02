@@ -75,7 +75,7 @@
 - [ ] #029 Implementar frequência de coleta (1h, 6h, 24h)
 - [ ] #030 Adicionar botão limpar cache
 
-### Sprint 5 — Telegram Bot
+### Sprint 5 — Telegram Bot ✅
 - [ ] #031 Criar bot Telegram (python-telegram-bot v21)
 - [ ] #032 Implementar comandos: /start, /status, /pause, /resume, /help
 - [ ] #033 Implementar notificações de novos artigos
@@ -83,7 +83,7 @@
 - [ ] #035 Adicionar botões inline para feedback (👍/👎)
 - [ ] #036 Integrar bot com Mini App (WebApp button)
 
-### Sprint 6 — Qualidade e Polish
+### Sprint 6 — Qualidade e Polish ✅
 - [ ] #037 Adicionar testes unitários para scrapers
 - [ ] #038 Adicionar testes unitários para API
 - [ ] #039 Adicionar testes e2e para Mini App
