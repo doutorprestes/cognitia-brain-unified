@@ -129,6 +129,26 @@ async def search(q: str = "", type: str = "all", period: str = "all", limit: int
     return {"items": items, "total": total, "offset": offset, "limit": limit, "query": q}
 
 
+@pwa_app.get("/api/profile/{user_id}")
+async def get_profile(user_id: str):
+    """Obtém perfil do usuário."""
+    db = UnifiedDatabase()
+    profile = db.get_user_profile(user_id)
+    return profile
+
+
+@pwa_app.put("/api/profile/{user_id}")
+async def update_profile(user_id: str, request: Request):
+    """Atualiza perfil do usuário."""
+    data = await request.json()
+    interests = data.get("interests", [])
+    stats = data.get("stats", {})
+    
+    db = UnifiedDatabase()
+    db.save_user_profile(user_id, interests, stats)
+    return {"ok": True, "user_id": user_id}
+
+
 @pwa_app.post("/api/feedback")
 async def feedback(request: Request):
     data = await request.json()

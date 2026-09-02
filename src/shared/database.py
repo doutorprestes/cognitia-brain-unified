@@ -1,5 +1,6 @@
 """Database unificado."""
 import hashlib
+import json
 import logging
 import sqlite3
 from contextlib import contextmanager
@@ -53,6 +54,13 @@ class UnifiedDatabase:
                     version INTEGER PRIMARY KEY AUTOINCREMENT, accuracy REAL,
                     precision REAL, recall REAL, n_train_samples INTEGER,
                     trained_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS user_profiles (
+                    user_id TEXT PRIMARY KEY,
+                    interests TEXT DEFAULT '[]',
+                    stats TEXT DEFAULT '{}',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 CREATE INDEX IF NOT EXISTS idx_items_type ON items(type);
                 CREATE INDEX IF NOT EXISTS idx_items_source ON items(source);
@@ -134,6 +142,29 @@ class UnifiedDatabase:
         with self._connection() as conn:
             cursor = conn.execute('SELECT COUNT(*) FROM items WHERE notified_at IS NOT NULL')
             return cursor.fetchone()[0]
+
+    def get_user_profile(self, user_id: str) -> dict:
+        """Obtém perfil do usuário."""
+        with self._connection() as conn:
+            cursor = conn.execute('SELECT * FROM user_profiles WHERE user_id = ?', (user_id,))
+            row = cursor.fetchone()
+            if row:
+                return {
+                    'user_id': row['user_id'],
+                    'interests': json.loads(row['interests']),
+                    'stats': json.loads(row['stats']),
+                    'created_at': row['created_at'],
+                    'updated_at': row['updated_at']
+                }
+            return {'user_id': user_id, 'interests': [], 'stats': {}}
+
+    def save_user_profile(self, user_id: str, interests: list, stats: dict):
+        """Salva perfil do usuário."""
+        with self._connection() as conn:
+            conn.execute('''
+                INSERT OR REPLACE INTO user_profiles (user_id, interests, stats, updated_at)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+            ''', (user_id, json.dumps(interests), json.dumps(stats)))
 
     def save_metrics(self, accuracy: float, precision: float, recall: float, n_samples: int):
         with self._connection() as conn:
