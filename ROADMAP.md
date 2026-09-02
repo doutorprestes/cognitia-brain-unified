@@ -68,7 +68,7 @@
 - [ ] #024 Filtrar artigos no frontend baseado no perfil
 - [ ] #025 Criar tela de estatísticas (feedbacks dados, artigos abertos)
 
-### Sprint 4 — Configurações
+### Sprint 4 — Configurações ✅
 - [ ] #026 Criar endpoint GET/PUT /api/config
 - [ ] #027 Criar UI de configurações (tema, idioma, notificações)
 - [ ] #028 Implementar modo claro/escuro (seguir Telegram ou manual)

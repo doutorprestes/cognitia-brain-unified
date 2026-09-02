@@ -1,88 +1,116 @@
-"""Unified Telegram bot."""
+"""Telegram Bot - CognitiaBrain."""
 import logging
-from typing import Optional
-
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.constants import ParseMode
 
-from ..shared.config import config
-from ..shared.database import UnifiedDatabase
-from ..shared.metrics import GrantWatchMetrics
+import sys
+sys.path.insert(0, '/home/jalp/Projetos/cognitia-brain-unified')
 
+from src.shared.config import config
+from src.shared.database import UnifiedDatabase
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class CognitiaBot:
-    def __init__(self, token: str, chat_id: str, db_path: Optional[str] = None):
-        self.token = token
-        self.chat_id = chat_id
-        self.db = UnifiedDatabase(db_path)
-        self.metrics = GrantWatchMetrics(self.db)
-        self._app = None
-        self._pausado = False
 
-    async def iniciar(self):
-        self._app = Application.builder().token(self.token).build()
-        self._app.add_handler(CommandHandler('start', self._cmd_start))
-        self._app.add_handler(CommandHandler('status', self._cmd_status))
-        self._app.add_handler(CommandHandler('pause', self._cmd_pause))
-        self._app.add_handler(CommandHandler('resume', self._cmd_resume))
-        self._app.add_handler(CommandHandler('help', self._cmd_help))
-        self._app.add_handler(CommandHandler('metrics', self._cmd_metrics))
-        self._app.add_handler(CallbackQueryHandler(self._callback_handler))
-        await self._app.run_polling()
+async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Comando /start."""
+    welcome = (
+        "🧠 <b>Bem-vindo ao CognitiaBrain!</b>\n\n"
+        "Seu assistente de monitoramento acadêmico.\n\n"
+        "📋 <b>Comandos disponíveis:</b>\n"
+        "/status - Ver estatísticas\n"
+        "/novo - Ver últimos artigos\n"
+        "/pausar - Pausar notificações\n"
+        "/retomar - Retomar notificações\n"
+        "/ajuda - Ajuda\n\n"
+        "Use o Mini App para ver os artigos:"
+    )
+    
+    keyboard = [[InlineKeyboardButton("🧠 Abrir Mini App", web_app=config.MINI_APP_URL)]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.message.reply_text(welcome, parse_mode=ParseMode.HTML, reply_markup=reply_markup)
 
-    async def parar(self):
-        if self._app:
-            await self._app.stop()
 
-    async def notificar_item(self, edital: dict):
-        if self._pausado or not self._app:
-            return
-        item_hash = edital.get('hash', '')
-        texto = f"📢 <b>NOVO {edital.get('type', 'ITEM').upper()}</b>\n\n📌 {edital.get('title', 'Sem título')}\n🏛️ Fonte: {edital.get('source', 'Desconhecida')}\n"
-        if edital.get('snippet'):
-            texto += f"📝 {edital['snippet'][:150]}...\n"
-        if edital.get('url'):
-            texto += f"🔗 <a href=\"{edital['url']}\">Acessar</a>\n"
-        if edital.get('confidence'):
-            texto += f"\n🎯 Confiança: {edital['confidence']*100:.0f}%"
-        keyboard = [[InlineKeyboardButton('👍 Útil', callback_data=f'feedback:{item_hash}:1'), InlineKeyboardButton('👎 Não útil', callback_data=f'feedback:{item_hash}:0')]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await self._app.bot.send_message(chat_id=self.chat_id, text=texto, reply_markup=reply_markup, parse_mode='HTML', disable_web_page_preview=True)
+async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Comando /status."""
+    db = UnifiedDatabase()
+    stats = {
+        'total': db.count_items(),
+        'artigos': db.count_items('artigo'),
+        'grants': db.count_items('grant'),
+        'feedbacks': db.count_labels()
+    }
+    
+    text = (
+        "📊 <b>Estatísticas</b>\n\n"
+        f"📄 Total: {stats['total']}\n"
+        f"📝 Artigos: {stats['artigos']}\n"
+        f"🏛️ Grants: {stats['grants']}\n"
+        f"👆 Feedbacks: {stats['feedbacks']}"
+    )
+    
+    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
-    async def _cmd_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text('👋 <b>Bem-vindo ao CognitiaBrain!</b>\n\nUse /status para ver estatísticas.', parse_mode='HTML')
 
-    async def _cmd_status(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        relatorio = self.metrics.formatar_relatorio()
-        await update.message.reply_text(relatorio, parse_mode='HTML')
+async def cmd_pausar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Comando /pausar."""
+    await update.message.reply_text("⏸️ Notificações pausadas.")
 
-    async def _cmd_pause(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        self._pausado = True
-        await update.message.reply_text('⏸️ Notificações pausadas.')
 
-    async def _cmd_resume(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        self._pausado = False
-        await update.message.reply_text('▶️ Notificações retomadas!')
+async def cmd_retomar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Comando /retomar."""
+    await update.message.reply_text("▶️ Notificações retomadas!")
 
-    async def _cmd_help(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text('<b>CognitiaBrain</b>\n\n/start\n/status\n/pause\n/resume\n/metrics\n/help', parse_mode='HTML')
 
-    async def _cmd_metrics(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        labels = self.db.count_labels()
-        await update.message.reply_text(f'📊 <b>Métricas</b>\n\nTotal feedbacks: {labels}', parse_mode='HTML')
+async def cmd_ajuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Comando /ajuda."""
+    text = (
+        "🧠 <b>CognitiaBrain</b>\n\n"
+        "Monitoramento acadêmico inteligente.\n\n"
+        "<b>Comandos:</b>\n"
+        "/start - Início\n"
+        "/status - Estatísticas\n"
+        "/novo - Últimos artigos\n"
+        "/pausar - Pausar notificações\n"
+        "/retomar - Retomar notificações\n"
+        "/ajuda - Esta mensagem\n\n"
+        "💡 Use o Mini App para ver artigos e editais!"
+    )
+    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
-    async def _callback_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        query = update.callback_query
-        await query.answer()
-        data = query.data
-        if not data.startswith('feedback:'):
-            return
-        partes = data.split(':')
-        if len(partes) != 3:
-            return
-        _, item_hash, label_str = partes
-        label = int(label_str)
-        self.db.save_feedback(item_hash, label, 0.0)
-        emoji = '👍' if label == 1 else '👎'
-        await query.edit_message_text(text=f'{query.message.text}\n\n✅ Feedback registrado: {emoji}', parse_mode='HTML')
+
+async def cmd_novo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Comando /novo - mostra últimos artigos."""
+    db = UnifiedDatabase()
+    items = db.get_unnotified()[:5]
+    
+    if not items:
+        await update.message.reply_text("📭 Nenhum item novo.")
+        return
+    
+    text = "📰 <b>Últimos artigos:</b>\n\n"
+    for item in items:
+        text += f"• {item['title'][:60]}...\n"
+    
+    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
+
+
+def main():
+    """Inicia o bot."""
+    application = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
+    
+    application.add_handler(CommandHandler('start', cmd_start))
+    application.add_handler(CommandHandler('status', cmd_status))
+    application.add_handler(CommandHandler('pausar', cmd_pausar))
+    application.add_handler(CommandHandler('retomar', cmd_retomar))
+    application.add_handler(CommandHandler('ajuda', cmd_ajuda))
+    application.add_handler(CommandHandler('novo', cmd_novo))
+    
+    application.run_polling()
+
+
+if __name__ == '__main__':
+    main()
