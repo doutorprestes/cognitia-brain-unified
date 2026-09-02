@@ -24,7 +24,7 @@ class GrantWatchMetrics:
     def gerar_relatorio(self) -> dict:
         return {
             'total_items': self.db.count_items(),
-            'total_notificados': self.db.count_notificados(),
+            'total_notificados': self.db.count_notified(),
             'total_feedback': self.db.count_labels(),
             'precision': 0.0, 'recall': 0.0, 'f1': 0.0,
         }

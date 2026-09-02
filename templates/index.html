@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+    <title>CognitiaBrain Unified</title>
+    <link rel="stylesheet" href="/static/css/pwa.css">
+</head>
+<body>
+    <!-- Install Banner -->
+    <div id="install-banner" class="install-banner" style="display: none;">
+        <span>📲 Instalar CognitiaBrain</span>
+        <button id="install-btn">Instalar</button>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <h1>🧠 CognitiaBrain</h1>
+        <div class="subtitle">Monitoramento Acadêmico Unificado</div>
+    </header>
+
+    <!-- Stats -->
+    <div class="stats">
+        <div class="stat-card">
+            <div class="value" id="stat-items">0</div>
+            <div class="label">Total</div>
+        </div>
+        <div class="stat-card">
+            <div class="value" id="stat-grants">0</div>
+            <div class="label">Grants</div>
+        </div>
+        <div class="stat-card">
+            <div class="value" id="stat-artigos">0</div>
+            <div class="label">Artigos</div>
+        </div>
+    </div>
+
+    <!-- Items -->
+    <div class="section">
+        <div class="section-title">📋 Itens Recentes</div>
+        <div id="items-container">
+            <div class="loading"><div class="spinner"></div></div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+        <a class="nav-item active" onclick="navigate('home')">
+            <span>🏠</span>
+            <span>Todos</span>
+        </a>
+        <a class="nav-item" onclick="navigate('grants')">
+            <span>💰</span>
+            <span>Grants</span>
+        </a>
+        <a class="nav-item" onclick="navigate('artigos')">
+            <span>📄</span>
+            <span>Artigos</span>
+        </a>
+    </nav>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script src="/static/js/pwa.js"></script>
+</body>
+</html>
