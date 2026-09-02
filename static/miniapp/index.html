@@ -22,7 +22,6 @@
             --safe-bottom: env(safe-area-inset-bottom, 0px);
             --radius: 14px;
             --radius-sm: 10px;
-            --radius-lg: 20px;
             --space: 14px;
             
             --cat-robot: #10b981;
@@ -173,9 +172,6 @@
             margin-top: 4px;
         }
         
-        
-        
-        
         /* Content */
         .content {
             flex: 1;
@@ -184,6 +180,18 @@
             padding: 0 16px;
             padding-bottom: calc(100px + var(--safe-bottom));
         }
+        
+        /* Pull to refresh */
+        .pull-indicator {
+            text-align: center;
+            padding: 12px;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            display: none;
+        }
+        
+        .pull-indicator.visible { display: block; }
+        .pull-indicator.loading::after { content: ' 🔄'; }
         
         /* Card */
         .card {
@@ -354,6 +362,17 @@
             100% { background-position: -200% 0; }
         }
         
+        /* Loading more */
+        .loading-more {
+            text-align: center;
+            padding: 16px;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            display: none;
+        }
+        
+        .loading-more.visible { display: block; }
+        
         /* Toast */
         .toast {
             position: fixed;
@@ -464,11 +483,10 @@
             <div class="stat"><div class="stat-value" id="stat-grants">0</div><div class="stat-label">Grants</div></div>
         </div>
         
-        
         <div class="content" id="content">
-            <div class="skeleton"></div>
-            <div class="skeleton"></div>
-            <div class="skeleton"></div>
+            <div class="pull-indicator" id="pull-indicator">↓ Puxe para atualizar</div>
+            <div id="items-list"></div>
+            <div class="loading-more" id="loading-more">Carregando mais...</div>
         </div>
         
         <div class="grill">
@@ -506,6 +524,54 @@
         
         var currentFilter = 'all';
         var allItems = [];
+        var offset = 0;
+        var limit = 20;
+        var total = 0;
+        var loading = false;
+        var hasMore = true;
+        
+        // Pull to refresh
+        var startY = 0;
+        var pulling = false;
+        var content = document.getElementById('content');
+        var pullIndicator = document.getElementById('pull-indicator');
+        
+        content.addEventListener('touchstart', function(e) {
+            if (content.scrollTop === 0) {
+                startY = e.touches[0].clientY;
+                pulling = true;
+            }
+        });
+        
+        content.addEventListener('touchmove', function(e) {
+            if (!pulling) return;
+            var diff = e.touches[0].clientY - startY;
+            if (diff > 60 && content.scrollTop === 0) {
+                pullIndicator.classList.add('visible');
+            }
+        });
+        
+        content.addEventListener('touchend', function(e) {
+            if (!pulling) return;
+            pulling = false;
+            if (pullIndicator.classList.contains('visible')) {
+                pullIndicator.classList.add('loading');
+                pullIndicator.textContent = 'Atualizando...';
+                refresh(function() {
+                    pullIndicator.classList.remove('visible', 'loading');
+                    pullIndicator.textContent = '↓ Puxe para atualizar';
+                });
+            }
+        });
+        
+        // Infinite scroll
+        var loadingMore = document.getElementById('loading-more');
+        var observer = new IntersectionObserver(function(entries) {
+            if (entries[0].isIntersecting && hasMore && !loading) {
+                loadMore();
+            }
+        }, { threshold: 0.5 });
+        observer.observe(loadingMore);
         
         function haptic(type) {
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred(type || 'light');
@@ -558,16 +624,19 @@
             });
         }
         
-        function renderItems(items) {
-            var el = document.getElementById('content');
+        function renderItems(items, append) {
+            var el = document.getElementById('items-list');
+            if (!append) el.innerHTML = '';
+            
             if (!items || items.length === 0) {
-                el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Nenhum item encontrado</div></div>';
+                if (!append) el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Nenhum item encontrado</div></div>';
                 return;
             }
-            el.innerHTML = items.map(function(item, i) {
+            
+            var html = items.map(function(item, i) {
                 var cat = classifyItem(item.title);
                 var badgeLabels = {robot: '🤖 Robótica', llm: '💬 LLM', agent: '🤝 Multi-Agent', alignment: '⚖️ Alignment', default: '📄 Artigo'};
-                var delay = Math.min(i * 60, 300);
+                var delay = Math.min(i * 50, 200);
                 return '<div class="card" data-cat="' + cat + '" style="animation-delay:' + delay + 'ms">' +
                     '<div class="card-accent"></div>' +
                     '<div class="card-body">' +
@@ -588,20 +657,36 @@
                     '</div>' +
                 '</div>';
             }).join('');
+            
+            el.insertAdjacentHTML('beforeend', html);
         }
         
-        function loadItems(filter) {
-            filter = filter || 'all';
-            var el = document.getElementById('content');
-            el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-            api('/items?type=all').then(function(d) {
+        function loadItems(filter, append) {
+            if (loading) return;
+            loading = true;
+            
+            if (!append) {
+                offset = 0;
+                hasMore = true;
+                document.getElementById('items-list').innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+            }
+            
+            loadingMore.classList.add('visible');
+            
+            api('/items?type=' + filter + '&limit=' + limit + '&offset=' + offset).then(function(d) {
                 if (!d) return;
-                allItems = d.items || [];
-                var filtered = filter === 'all' ? allItems : allItems.filter(function(item) {
-                    return classifyItem(item.title) === filter;
-                });
-                renderItems(filtered);
+                total = d.total;
+                allItems = append ? allItems.concat(d.items) : d.items;
+                renderItems(d.items, append);
+                offset += d.items.length;
+                hasMore = offset < total;
+                loadingMore.classList.toggle('visible', hasMore);
+                loading = false;
             });
+        }
+        
+        function loadMore() {
+            loadItems(currentFilter, true);
         }
         
         function feedback(hash, label) {
@@ -617,14 +702,12 @@
             setTimeout(function() { t.classList.remove('show'); }, 2000);
         }
         
-            loadItems(filter);
-        }
-        
-        function refresh() {
+        function refresh(callback) {
             haptic('medium');
             showToast('🔄 Atualizando...');
             loadStats();
             loadItems(currentFilter);
+            if (callback) setTimeout(callback, 1000);
         }
         
         function goTo(page) {
@@ -632,8 +715,6 @@
             document.querySelectorAll('.grill-btn').forEach(function(b) {
                 b.classList.remove('active');
             });
-            
-            var labels = {home: 'Início', buscar: 'Buscar', editais: 'Editais', perfil: 'Perfil', config: 'Config'};
             
             if (page === 'home') {
                 loadStats();
@@ -649,7 +730,6 @@
                 showToast('⚙️ Configurações em breve');
             }
         }
-        
         
         loadStats();
         loadItems('all');

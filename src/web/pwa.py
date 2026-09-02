@@ -75,7 +75,7 @@ async def stats():
 
 
 @pwa_app.get("/api/items")
-async def items(type: str = "all", limit: int = 50):
+async def items(type: str = "all", limit: int = 20, offset: int = 0):
     db = UnifiedDatabase()
     item_type = None if type == "all" else type
     unnotified = db.get_unnotified(item_type)
@@ -83,8 +83,12 @@ async def items(type: str = "all", limit: int = 50):
     # Aplicar filtro de relevância
     itens_filtrados = relevancia_engine.filtrar(unnotified, threshold=0.1)
     
+    # Paginação
+    total = len(itens_filtrados)
+    itens_paginados = itens_filtrados[offset:offset + limit]
+    
     result = []
-    for item in itens_filtrados[:limit]:
+    for item in itens_paginados:
         result.append({
             "hash": item["hash"],
             "title": item["title"],
@@ -94,7 +98,7 @@ async def items(type: str = "all", limit: int = 50):
             "snippet": item.get("snippet", ""),
             "scraped_at": str(item.get("scraped_at", "")),
         })
-    return {"items": result, "total": len(itens_filtrados)}
+    return {"items": result, "total": total, "offset": offset, "limit": limit}
 
 
 @pwa_app.post("/api/feedback")
