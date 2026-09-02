@@ -92,6 +92,22 @@ class UnifiedDatabase:
         with self._connection() as conn:
             conn.execute('UPDATE items SET notified_at = CURRENT_TIMESTAMP WHERE hash = ?', (item_hash,))
 
+    def search(self, query: str, item_type: Optional[str] = None) -> list:
+        """Busca por título, snippet ou source."""
+        with self._connection() as conn:
+            search_term = f'%{query.lower()}%'
+            if item_type:
+                cursor = conn.execute(
+                    'SELECT * FROM items WHERE type = ? AND (LOWER(title) LIKE ? OR LOWER(snippet) LIKE ? OR LOWER(source) LIKE ?) ORDER BY scraped_at DESC',
+                    (item_type, search_term, search_term, search_term)
+                )
+            else:
+                cursor = conn.execute(
+                    'SELECT * FROM items WHERE LOWER(title) LIKE ? OR LOWER(snippet) LIKE ? OR LOWER(source) LIKE ? ORDER BY scraped_at DESC',
+                    (search_term, search_term, search_term)
+                )
+            return [dict(row) for row in cursor.fetchall()]
+
     def save_feedback(self, item_hash: str, label: int, confidence: float):
         with self._connection() as conn:
             conn.execute('INSERT INTO feedback (item_hash, label, confidence) VALUES (?, ?, ?)', (item_hash, label, confidence))

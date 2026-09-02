@@ -101,6 +101,34 @@ async def items(type: str = "all", limit: int = 20, offset: int = 0):
     return {"items": result, "total": total, "offset": offset, "limit": limit}
 
 
+@pwa_app.get("/api/search")
+async def search(q: str = "", type: str = "all", period: str = "all", limit: int = 20, offset: int = 0):
+    """Busca artigos por título, snippet, source."""
+    db = UnifiedDatabase()
+    item_type = None if type == "all" else type
+    
+    # Buscar no banco
+    results = db.search(q, item_type)
+    
+    # Paginação
+    total = len(results)
+    results_paginated = results[offset:offset + limit]
+    
+    items = []
+    for item in results_paginated:
+        items.append({
+            "hash": item["hash"],
+            "title": item["title"],
+            "url": item["url"],
+            "source": item["source"],
+            "type": item["type"],
+            "snippet": item.get("snippet", ""),
+            "scraped_at": str(item.get("scraped_at", "")),
+        })
+    
+    return {"items": items, "total": total, "offset": offset, "limit": limit, "query": q}
+
+
 @pwa_app.post("/api/feedback")
 async def feedback(request: Request):
     data = await request.json()

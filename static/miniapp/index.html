@@ -373,6 +373,35 @@
         
         .loading-more.visible { display: block; }
         
+        /* Search */
+        .search-bar {
+            display: none;
+            padding: 12px 16px;
+            background: var(--surface);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        
+        .search-bar.visible { display: block; }
+        
+        .search-input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.03);
+            color: var(--text);
+            font-size: 0.85rem;
+            outline: none;
+        }
+        
+        .search-input:focus {
+            border-color: var(--primary);
+        }
+        
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+        
         /* Toast */
         .toast {
             position: fixed;
@@ -483,6 +512,10 @@
             <div class="stat"><div class="stat-value" id="stat-grants">0</div><div class="stat-label">Grants</div></div>
         </div>
         
+        <div class="search-bar" id="search-bar">
+            <input type="text" class="search-input" id="search-input" placeholder="Buscar artigos..." oninput="debounceSearch(this.value)">
+        </div>
+        
         <div class="content" id="content">
             <div class="pull-indicator" id="pull-indicator">↓ Puxe para atualizar</div>
             <div id="items-list"></div>
@@ -529,6 +562,8 @@
         var total = 0;
         var loading = false;
         var hasMore = true;
+        var searchTimeout = null;
+        var currentQuery = '';
         
         // Pull to refresh
         var startY = 0;
@@ -686,7 +721,47 @@
         }
         
         function loadMore() {
-            loadItems(currentFilter, true);
+            if (currentQuery) {
+                searchItems(currentQuery, true);
+            } else {
+                loadItems(currentFilter, true);
+            }
+        }
+        
+        function searchItems(query, append) {
+            if (loading) return;
+            loading = true;
+            
+            if (!append) {
+                offset = 0;
+                hasMore = true;
+                document.getElementById('items-list').innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+            }
+            
+            loadingMore.classList.add('visible');
+            
+            api('/search?q=' + encodeURIComponent(query) + '&limit=' + limit + '&offset=' + offset).then(function(d) {
+                if (!d) return;
+                total = d.total;
+                allItems = append ? allItems.concat(d.items) : d.items;
+                renderItems(d.items, append);
+                offset += d.items.length;
+                hasMore = offset < total;
+                loadingMore.classList.toggle('visible', hasMore);
+                loading = false;
+            });
+        }
+        
+        function debounceSearch(query) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                currentQuery = query;
+                if (query.trim()) {
+                    searchItems(query, false);
+                } else {
+                    loadItems(currentFilter, false);
+                }
+            }, 300);
         }
         
         function feedback(hash, label) {
@@ -706,7 +781,11 @@
             haptic('medium');
             showToast('🔄 Atualizando...');
             loadStats();
-            loadItems(currentFilter);
+            if (currentQuery) {
+                searchItems(currentQuery, false);
+            } else {
+                loadItems(currentFilter, false);
+            }
             if (callback) setTimeout(callback, 1000);
         }
         
@@ -716,17 +795,25 @@
                 b.classList.remove('active');
             });
             
+            var searchBar = document.getElementById('search-bar');
+            
             if (page === 'home') {
+                searchBar.classList.remove('visible');
                 loadStats();
                 loadItems('all');
                 showToast('🏠 Início');
             } else if (page === 'buscar') {
-                showToast('🔍 Busca em breve');
+                searchBar.classList.add('visible');
+                document.getElementById('search-input').focus();
+                showToast('🔍 Buscar');
             } else if (page === 'editais') {
+                searchBar.classList.remove('visible');
                 showToast('📜 Editais em breve');
             } else if (page === 'perfil') {
+                searchBar.classList.remove('visible');
                 showToast('👤 Perfil em breve');
             } else if (page === 'config') {
+                searchBar.classList.remove('visible');
                 showToast('⚙️ Configurações em breve');
             }
         }
