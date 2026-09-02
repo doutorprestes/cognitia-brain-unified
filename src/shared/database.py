@@ -9,23 +9,30 @@ from .config import DB_PATH
 
 logger = logging.getLogger(__name__)
 
+
 class UnifiedDatabase:
     def __init__(self, db_path: Optional[str] = None):
         self.db_path = db_path or DB_PATH
+        self._conn = None
         self._create_tables()
+
+    def _get_conn(self):
+        if self._conn is None:
+            self._conn = sqlite3.connect(self.db_path)
+            self._conn.row_factory = sqlite3.Row
+            self._conn.execute('PRAGMA journal_mode=WAL')
+            self._conn.execute('PRAGMA foreign_keys=ON')
+        return self._conn
 
     @contextmanager
     def _connection(self):
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
+        conn = self._get_conn()
         try:
             yield conn
             conn.commit()
         except Exception:
             conn.rollback()
             raise
-        finally:
-            conn.close()
 
     def _create_tables(self):
         with self._connection() as conn:
