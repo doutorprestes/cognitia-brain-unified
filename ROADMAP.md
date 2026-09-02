@@ -2,169 +2,219 @@
 
 > Sistema unificado de monitoramento acadêmico: grants + artigos + IA.
 
-## Status: ✅ COMPLETO
+## Status: 🔄 EM DESENVOLVIMENTO
 
-**7 projetos importados** (código legado, sem modificações):
-- CognitiaBrain (artigos + LLM + Telegram bot)
-- GrantWatch (editais + scrapers TS)
-- IA-Brasil (coletor dados públicos + 20+ módulos)
-- InvestIA (ETL + API + backend)
-- buscador_de_grants (.NET + ML.NET)
-- grantwatch_evolution (Next.js dashboard)
-- inteligencia-ai (scrapers + webapp)
-
-**Total:** ~220 arquivos, ~314k linhas de código, 12 subdiretórios em `src/`.
+**Última atualização:** 2026-09-02
 
 ---
 
-## Fases
+## Estado Atual
 
-### Fase 1 — Inventário e Limpeza ✅
-- [x] Mapear todas as fontes de dados e scrapers
-- [x] Identificar sobreposições e duplicações
-- [x] Remover código morto e dependências não utilizadas
-- [x] Padronizar estrutura de diretórios
-- [x] Documentar arquitetura atual (como-está)
+### ✅ Funcional
+- Backend FastAPI com endpoints `/api/stats`, `/api/items`, `/api/feedback`, `/api/health`
+- Scraper arXiv (20 artigos relevantes, filtros por categoria)
+- Scraper OpenAlex (30 artigos relevantes, sem rate limit)
+- Banco SQLite com 49 artigos (deduplicação por hash)
+- Filtro de relevância por palavras-chave (config/interesses.yaml)
+- Telegram Mini App com UI responsiva (dark mode)
+- Grill de navegação (5 botões: Início, Buscar, Editais, Perfil, Config)
+- Cards com badges por categoria (Robótica, LLM, Multi-Agent, Alignment)
+- Feedback (👍/👎) com persistência no banco
+- Deploy via Cloudflare Tunnel (público, HTTPS)
+- Git sincronizado com GitHub
 
-### Fase 2 — Fundação Unificada ✅
-- [x] Módulo de configuração centralizado (`.env` + YAML)
-- [x] Banco de dados SQLite unificado (schema padronizado)
-- [x] Sistema de deduplicação (hash SHA-256)
-- [x] Logger e tratamento de erros centralizados
-- [x] Pipeline de eventos assíncrono
-
-### Fase 3 — Scrapers Unificados ✅
-- [x] Classe base abstrata `BaseScraper` (interface única)
-- [x] Migrar scrapers Python: FINEP, CNPq, CAPES, FAPESP, EMBRAPII, SENAI
-- [x] Migrar scrapers TypeScript (GrantWatch, inteligencia-ai) — criar bridge
-- [x] Integrar coletor IA-Brasil (DOU, CGEE, MCTI, CGU)
-- [x] Integrar ETL InvestIA (Câmara, Senado, DOU)
-- [x] Criar `src/scrapers/grants/` para editais
-- [x] Criar `src/scrapers/artigos/` para artigos (arXiv, SemanticScholar)
-- [x] Criar `src/scrapers/gov/` para dados governamentais
-- [x] Retry com backoff, rate limiting, proxy rotation
-- [x] Testes unitários para cada scraper
-
-### Fase 4 — Classificação ML ✅
-- [x] Classificador de relevância (SetFit + MiniLM)
-- [x] Embeddings unificados (ChromaDB)
-- [x] Confidence gate (conservador/moderado/agressivo)
-- [x] Retreinamento incremental (a cada 20 feedbacks)
-- [x] Integrar classificador .NET (buscador_de_grants) via bridge
-- [x] Métricas: precision, recall, F1
-
-### Fase 5 — Bot Telegram Unificado ✅
-- [x] Bot único (migrar do CognitiaBrain)
-- [x] Comandos: /start, /status, /pause, /resume, /help, /metrics
-- [x] Botões inline para feedback (👍/👎)
-- [x] Notificações formatadas com confiança
-- [x] Conversation memory para diálogos contextuais
-- [x] Integrar com classifier e deduplicação
-
-### Fase 6 — Dashboard Web ✅
-- [x] FastAPI + Jinja2 + HTMX
-- [x] Visualização de grants + artigos
-- [x] Filtros por fonte, data, relevância
-- [x] Métricas de performance
-- [x] Gestão de foco de pesquisa
-
-### Fase 7 — Inteligência Ativa ✅
-- [x] FocusManager (inferência de foco)
-- [x] Detecção de conexões (cosseno + grafo)
-- [x] Síntese de escrita por tema
-- [x] Scout web automatizado
-- [x] Weekly digest
-
-### Fase 8 — Integração e Polish ✅
-- [x] Testes unitários e e2e
-- [x] Documentação completa
-- [x] CI/CD (GitHub Actions)
-- [x] Deploy automatizado
-- [x] Migração de dados históricos
+### ❌ Não Funcional / Incompleto
+- Scrapers CAPES, CNPq, FINEP, DOU (retornam lixo ou erro)
+- Sem sistema de busca (placeholder)
+- Sem sistema de editais reais (placeholder)
+- Sem sistema de perfil (placeholder)
+- Sem sistema de configurações (placeholder)
+- Sem Telegram bot (notificações)
+- Sem pull-to-refresh / paginação
+- Sem pull request / code review
 
 ---
 
-## Arquitetura Final
+## Issues Atômicas (para modelo menor)
+
+### Sprint 1 — Fundação do Mini App
+- [ ] **#001** Adicionar pull-to-refresh na lista de artigos
+- [ ] **#002** Implementar paginação infinita (scroll carrega mais)
+- [ ] **#003** Adicionar indicador "novos desde última visita"
+- [ ] **#004** Criar tela vazia quando não há itens
+- [ ] **#005** Melhorar skeleton loading (mais cards, animação suave)
+
+### Sprint 2 — Busca
+- [ ] **#006** Criar endpoint `GET /api/search?q=&type=&period=`
+- [ ] **#007** Implementar busca no banco (LIKE em title, snippet, source)
+- [ ] **#008** Criar UI de busca (campo input, filtros, resultados)
+- [ ] **#009** Salvar histórico de buscas no Telegram CloudStorage
+- [ ] **#010** Adicionar busca por categoria (robot, llm, agent, alignment)
+
+### Sprint 3 — Editais (Grants)
+- [ ] **#011** Refinar scraper FAPESP (parser específico de editais)
+- [ ] **#012** Refinar scraper CNPq (parser específico de chamadas)
+- [ ] **#013** Refinar scraper CAPES (parser específico de bolsas)
+- [ ] **#014** Refinar scraper FINEP (parser específico de subvenção)
+- [ ] **#015** Refinar scraper DOU (seção 3, editais de fomento)
+- [ ] **#016** Criar tabela `grants` no banco (status, deadline, etc.)
+- [ ] **#017** Criar UI de editais (cards com status: aberto/encerrado)
+- [ ] **#018** Adicionar filtro por agência fomentadora
+- [ ] **#019** Implementar alertas de novos editais (notificação Telegram)
+
+### Sprint 4 — Perfil
+- [ ] **#020** Criar endpoint `GET/PUT /api/profile`
+- [ ] **#021** Criar UI de perfil (áreas de interesse, estatísticas)
+- [ ] **#022** Implementar seleção de áreas de interesse (checkboxes)
+- [ ] **#023** Salvar perfil no Telegram CloudStorage
+- [ ] **#024** Filtrar artigos no frontend baseado no perfil
+- [ ] **#025** Criar tela de estatísticas (feedbacks dados, artigos abertos)
+
+### Sprint 5 — Configurações
+- [ ] **#026** Criar endpoint `GET/PUT /api/config`
+- [ ] **#027** Criar UI de configurações (tema, idioma, notificações)
+- [ ] **#028** Implementar modo claro/escuro (seguir Telegram ou manual)
+- [ ] **#029** Implementar frequência de coleta (1h, 6h, 24h)
+- [ ] **#030** Adicionar botão "limpar cache"
+
+### Sprint 6 — Telegram Bot
+- [ ] **#031** Criar bot Telegram (python-telegram-bot v21)
+- [ ] **#032** Implementar comandos: /start, /status, /pause, /resume, /help
+- [ ] **#033** Implementar notificações de novos artigos
+- [ ] **#034** Implementar notificações de novos editais
+- [ ] **#035** Adicionar botões inline para feedback (👍/👎)
+- [ ] **#036** Integrar bot com Mini App (WebApp button)
+
+### Sprint 7 — Qualidade e Polish
+- [ ] **#037** Adicionar testes unitários para scrapers
+- [ ] **#038** Adicionar testes unitários para API
+- [ ] **#039** Adicionar testes e2e para Mini App
+- [ ] **#040** Configurar CI/CD (GitHub Actions)
+- [ ] **#041** Documentar API (OpenAPI/Swagger)
+- [ ] **#042** Criar documentação de contribuição
+
+---
+
+## Planejamento de Execução
+
+### Semana 1 (2026-09-03 a 2026-09-09)
+**Foco:** Mini App funcional e busca
+
+| Dia | Tarefa | Issue |
+|-----|--------|-------|
+| 1 | Pull-to-refresh + paginação | #001, #002 |
+| 2 | Indicador de novos + tela vazia | #003, #004 |
+| 3 | Skeleton melhorado | #005 |
+| 4 | Endpoint de busca | #006, #007 |
+| 5 | UI de busca | #008, #009 |
+| 6 | Busca por categoria | #010 |
+| 7 | Testes e ajustes | — |
+
+### Semana 2 (2026-09-10 a 2026-09-16)
+**Foco:** Editais reais
+
+| Dia | Tarefa | Issue |
+|-----|--------|-------|
+| 1 | Refinar scraper FAPESP | #011 |
+| 2 | Refinar scraper CNPq | #012 |
+| 3 | Refinar scraper CAPES | #013 |
+| 4 | Refinar scraper FINEP | #14 |
+| 5 | Refinar scraper DOU | #015 |
+| 6 | Tabela grants + UI | #016, #017 |
+| 7 | Filtros + alertas | #018, #019 |
+
+### Semana 3 (2026-09-17 a 2026-09-23)
+**Foco:** Perfil + Config + Bot
+
+| Dia | Tarefa | Issue |
+|-----|--------|-------|
+| 1 | Endpoint + UI de perfil | #020, #021 |
+| 2 | Áreas de interesse | #022, #023, #024 |
+| 3 | Estatísticas | #025 |
+| 4 | Endpoint + UI de config | #026, #027 |
+| 5 | Tema + frequência | #028, #029, #030 |
+| 6 | Bot Telegram básico | #031, #032 |
+| 7 | Notificações + integração | #033, #034, #035, #036 |
+
+### Semana 4 (2026-09-24 a 2026-09-30)
+**Foco:** Qualidade e lançamento
+
+| Dia | Tarefa | Issue |
+|-----|--------|-------|
+| 1 | Testes unitários scrapers | #037 |
+| 2 | Testes unitários API | #038 |
+| 3 | Testes e2e Mini App | #039 |
+| 4 | CI/CD | #040 |
+| 5 | Documentação | #041, #042 |
+| 6 | Beta testing + ajustes | — |
+| 7 | Lançamento v1.0 | — |
+
+---
+
+## Arquitetura
 
 ```
 cognitia-brain-unified/
 ├── src/
-│   ├── scrapers/          # TODOS os scrapers unificados (Python)
-│   │   ├── grants/        # FINEP, CNPq, CAPES, FAPESP, etc.
-│   │   ├── artigos/       # arXiv, SemanticScholar, feeds
-│   │   └── gov/           # DOU, CGEE, MCTI, CGU, Câmara, Senado
-│   ├── ml/                # Classificador, embeddings, ChromaDB
-│   ├── bot/               # Telegram bot unificado
-│   ├── web/               # Dashboard (FastAPI ou Next.js)
-│   ├── shared/            # Config, database, logger, eventos
-│   └── scripts/           # Scripts utilitários
-├── tests/
-├── docs/
-├── issues/
+│   ├── scrapers/
+│   │   ├── artigos/       # arXiv, OpenAlex (✅ funcional)
+│   │   ├── grants/        # FAPESP, CNPq, CAPES, FINEP (❌ quebrado)
+│   │   └── gov/           # DOU (❌ quebrado)
+│   ├── web/
+│   │   └── pwa.py         # FastAPI endpoints (✅ funcional)
+│   ├── bot/
+│   │   └── bot.py         # Telegram bot (❌ não iniciado)
+│   └── shared/
+│       ├── database.py    # SQLite (✅ funcional)
+│       ├── relevancia.py  # Filtro de relevância (✅ funcional)
+│       └── config.py      # Config centralizado (✅ funcional)
+├── static/
+│   └── miniapp/
+│       └── index.html     # Telegram Mini App (✅ funcional)
+├── config/
+│   └── interesses.yaml    # Perfil de interesses (✅ funcional)
 ├── data/
-└── models/
+│   └── cognitia.db        # Banco SQLite (✅ 49 artigos)
+├── tests/                 # (❌ vazio)
+├── issues/                # (❌ vazio)
+└── docs/                  # (❌ vazio)
 ```
 
 ---
 
 ## Stack Técnica
 
-| Componente | Ferramenta | Justificativa |
-|------------|------------|---------------|
-| **Linguagem** | Python 3.11+ | NLP/ML nativo, ChromaDB, unificação |
-| **Bot** | python-telegram-bot v21 | Async, estável, Bot API 7.0+ |
-| **Vector DB** | ChromaDB | Embeddings, busca semântica |
-| **Embeddings** | paraphrase-multilingual-MiniLM-L12-v2 | Multilíngue, CPU-friendly |
-| **Classificador** | SetFit + LogisticRegression | Few-shot, incremental |
-| **Scrapers** | Playwright + BeautifulSoup | JS-rendered pages |
-| **LLM** | OpenRouter → Ollama Cloud | Cloud-first, fallback local |
-| **Web** | FastAPI + Jinja2 + HTMX | Leve, server-side |
-| **Agendamento** | APScheduler | Cron, intervalos |
-| **Storage** | SQLite | Zero config, portável |
+| Componente | Ferramenta | Status |
+|------------|------------|--------|
+| **Linguagem** | Python 3.12 | ✅ |
+| **Backend** | FastAPI + Uvicorn | ✅ |
+| **Frontend** | HTML/JS vanilla (Telegram Mini App) | ✅ |
+| **Banco** | SQLite (WAL mode) | ✅ |
+| **Scrapers** | httpx + BeautifulSoup + Playwright | ⚠️ Parcial |
+| **Deploy** | Cloudflare Tunnel | ✅ |
+| **Bot** | python-telegram-bot v21 | ❌ |
+| **Testes** | pytest | ❌ |
+| **CI/CD** | GitHub Actions | ❌ |
 
 ---
 
 ## Métricas de Sucesso
 
-| Métrica | Meta | Status |
-|---------|------|--------|
-| Cobertura de fontes | 15+ scrapers funcionando | ✅ |
-| Deduplicação | 0% de notificações duplicadas | ✅ |
-| Precisão (relevância) | > 85% de notificações úteis | ✅ |
-| Latência (scrape → notify) | < 5 minutos | ✅ |
-| Feedback loop | Retreinamento a cada 20 labels | ✅ |
-| Código morto | 0% (tudo documentado e testado) | ✅ |
-
----
-
-## Riscos e Mitigações
-
-| Risco | Mitigação |
-|-------|-----------|
-| Mudança de layout nas fontes | Múltiplos seletores + fallback |
-| Drift do modelo | Retreinamento periódico |
-| Rate limit Telegram | Batching + retry com backoff |
-| Dados de feedback enviesados | Diversity sampling |
-| Conflito de porta web | Porta canônica 8081 |
-| Complexidade da integração | Fases incrementais, testes a cada fase |
-
----
-
-## Projetos Originais (Inalterados)
-
-- [CognitiaBrain](https://github.com/doutorprestes/cognitia-brain) — monitor de artigos
-- [GrantWatch](https://github.com/doutorprestes/grantwatch) — monitor de editais
-- [IA-Brasil](https://github.com/doutorprestes/ia-brasil) — dados públicos brasileiros
-- [InvestIA](https://github.com/doutorprestes/investia) — dados de investimento
-- [buscador_de_grants](https://github.com/doutorprestes/buscador-de-grants) — buscador .NET
-- [grantwatch_evolution](https://github.com/doutorprestes/grantwatch-evolution) — dashboard Next.js
-- [inteligencia-ai](https://github.com/doutorprestes/inteligencia-ai) — scrapers + webapp
+| Métrica | Meta | Atual |
+|---------|------|-------|
+| Artigos relevantes | 100+ | 49 |
+| Editais funcionando | 5 fontes | 0 |
+| Scrapers funcionando | 10 | 2 |
+| Cobertura de testes | > 80% | 0% |
+| Tempo de resposta API | < 200ms | ~100ms |
+| Uptime | > 99% | ~95% |
 
 ---
 
 ## Referências
 
-- [Scrapy](https://scrapy.org/) — framework de scraping
-- [ChromaDB](https://trychroma.com/) — vector database
-- [SetFit](https://github.com/huggingface/setfit) — few-shot classification
-- [python-telegram-bot](https://python-telegram-bot.org/) — bot framework
+- [Telegram Mini Apps](https://core.telegram.org/bots/webapps)
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [OpenAlex API](https://docs.openalex.org/)
+- [arXiv API](https://arxiv.org/help/api)
+- [python-telegram-bot](https://python-telegram-bot.org/)
