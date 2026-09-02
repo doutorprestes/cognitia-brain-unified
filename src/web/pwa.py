@@ -46,10 +46,10 @@ def validate_telegram_init_data(init_data: str, bot_token: str) -> dict:
     return result
 
 
-@pwa_app.get("/", response_class=HTMLResponse)
+@pwa_app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 async def index():
     with open(BASE_DIR / "static" / "miniapp" / "index.html") as f:
-        return HTMLResponse(content=f.read())
+        return HTMLResponse(content=f.read(), headers={"Content-Type": "text/html; charset=utf-8"})
 
 
 @pwa_app.get("/api/stats")
