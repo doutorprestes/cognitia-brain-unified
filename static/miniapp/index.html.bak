@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CognitiaBrain</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg: var(--tg-theme-bg-color, #0f172a);
+            --surface: var(--tg-theme-secondary-bg-color, #1e293b);
+            --primary: var(--tg-theme-button-color, #3b82f6);
+            --text: var(--tg-theme-text-color, #f1f5f9);
+            --text-muted: var(--tg-theme-hint-color, #94a3b8);
+            --border: #334155;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 80px; }
+        .header { background: var(--surface); padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .header h1 { font-size: 1.25rem; font-weight: 600; }
+        .header .subtitle { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 16px; }
+        .stat-card { background: var(--surface); border-radius: 12px; padding: 16px 12px; text-align: center; border: 1px solid var(--border); }
+        .stat-card .value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+        .stat-card .label { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; }
+        .section { padding: 0 16px 16px; }
+        .section-title { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; }
+        .card { background: var(--surface); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
+        .card-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; line-height: 1.4; }
+        .card-meta { display: flex; gap: 12px; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
+        .card-snippet { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+        .card-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .btn { padding: 10px 16px; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 500; cursor: pointer;}
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: #22c55e; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 0.7rem; padding: 8px 16px; cursor: pointer; }
+        .nav-item.active { color: var(--primary); }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .loading { display: flex; justify-content: center; padding: 40px; }
+        .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--border); padding: 12px 20px; border-radius: 8px; font-size: 0.85rem; z-index: 200; opacity: 0; transition: opacity 0.3s; }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🧠 CognitiaBrain</h1>
+        <div class="subtitle">Monitoramento Acadêmico</div>
+    </header>
+    <div class="stats">
+        <div class="stat-card"><div class="value" id="stat-items">0</div><div class="label">Total</div></div>
+        <div class="stat-card"><div class="value" id="stat-grants">0</div><div class="label">Grants</div></div>
+        <div class="stat-card"><div class="value" id="stat-artigos">0</div><div class="label">Artigos</div></div>
+    </div>
+    <div class="section">
+        <div class="section-title">📋 Itens Recentes</div>
+        <div id="items-container"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+    <nav class="bottom-nav">
+        <a class="nav-item active" onclick="navigate('home')"><span>🏠</span><span>Todos</span></a>
+        <a class="nav-item" onclick="navigate('grants')"><span>💰</span><span>Grants</span></a>
+        <a class="nav-item" onclick="navigate('artigos')"><span>📄</span><span>Artigos</span></a>
+    </nav>
+    <div id="toast" class="toast"></div>
+    <script>
+        var tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        function haptic(t) { if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred(t); }
+        function apiCall(endpoint, opts) {
+            opts = opts || {};
+            return fetch('/api' + endpoint, { headers: {'Content-Type': 'application/json'}, ...opts }).then(function(r) { return r.json(); });
+        }
+        function loadStats() {
+            apiCall('/stats').then(function(d) {
+                if (!d) return;
+                document.getElementById('stat-items').textContent = d.total_items || 0;
+                document.getElementById('stat-grants').textContent = d.total_grants || 0;
+                document.getElementById('stat-artigos').textContent = d.total_artigos || 0;
+            });
+        }
+        function loadItems(type) {
+            type = type || 'all';
+            var c = document.getElementById('items-container');
+            c.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            apiCall('/items?type=' + type).then(function(d) {
+                if (!d || d.items.length === 0) {
+                    c.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Nenhum item encontrado</p></div>';
+                    return;
+                }
+                c.innerHTML = d.items.map(function(item) {
+                    return '<div class="card"><div class="card-title">' + item.title + '</div><div class="card-meta"><span>📌 ' + item.source + '</span><span>📅 ' + item.scraped_at + '</span></div><div class="card-snippet">' + (item.snippet || '') + '</div><div class="card-actions"><a href="' + item.url + '" target="_blank" class="btn btn-primary">Abrir</a><button class="btn btn-success" onclick="feedback(\'' + item.hash + '\', 1)">👍</button><button class="btn btn-danger" onclick="feedback(\'' + item.hash + '\', 0)">👎</button></div></div>';
+                }).join('');
+            });
+        }
+        function feedback(hash, label) {
+            haptic('light');
+            apiCall('/feedback', { method: 'POST', body: JSON.stringify({ hash: hash, label: label }) });
+            showToast(label ? '👍 Útil!' : '👎 Não útil');
+        }
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, 3000);
+        }
+        function navigate(page) {
+            haptic('medium');
+            document.querySelectorAll('.nav-item').forEach(function(el) { el.classList.remove('active'); });
+            event.target.closest('.nav-item').classList.add('active');
+            if (page === 'home') loadItems('all');
+            else if (page === 'grants') loadItems('grant');
+            else if (page === 'artigos') loadItems('artigo');
+        }
+        document.addEventListener('DOMContentLoaded', function() { loadStats(); loadItems('all'); });
+    </script>
+</body>
+</html>

@@ -25,6 +25,7 @@
             --radius-lg: 20px;
             --space: 14px;
             
+            /* Cores por categoria */
             --cat-robot: #10b981;
             --cat-llm: #3b82f6;
             --cat-agent: #a855f7;
@@ -41,6 +42,7 @@
             font-size: 15px;
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
         .app {
@@ -211,7 +213,7 @@
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             padding: 0 16px;
-            padding-bottom: calc(100px + var(--safe-bottom));
+            padding-bottom: calc(20px + var(--safe-bottom));
         }
         
         /* Card */
@@ -386,7 +388,7 @@
         /* Toast */
         .toast {
             position: fixed;
-            bottom: calc(100px + var(--safe-bottom));
+            bottom: calc(20px + var(--safe-bottom));
             left: 50%;
             transform: translateX(-50%) translateY(20px);
             background: var(--surface);
@@ -409,64 +411,6 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
-        
-        /* Grill */
-        .grill {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--surface);
-            border-top: 1px solid rgba(255,255,255,0.04);
-            padding: 8px 16px;
-            padding-bottom: calc(8px + var(--safe-bottom));
-            z-index: 100;
-        }
-        
-        .grill-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-        }
-        
-        .grill-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            padding: 8px 6px;
-            border-radius: var(--radius-sm);
-            border: 1px solid rgba(255,255,255,0.04);
-            background: transparent;
-            color: var(--text-muted);
-            font-size: 0.6rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-        }
-        
-        .grill-btn:active {
-            background: rgba(255,255,255,0.05);
-            transform: scale(0.95);
-        }
-        
-        .grill-btn.active {
-            background: rgba(59,130,246,0.1);
-            color: var(--primary);
-            border-color: rgba(59,130,246,0.2);
-        }
-        
-        .grill-btn .icon {
-            font-size: 1.2rem;
-            line-height: 1;
-        }
-        
-        .grill-btn .label {
-            font-size: 0.55rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
     </style>
 </head>
 <body>
@@ -482,7 +426,7 @@
                 </div>
                 <div class="header-actions">
                     <button class="icon-btn" onclick="refresh()">🔄</button>
-                    <button class="icon-btn" onclick="goTo('config')">⚙️</button>
+                    <button class="icon-btn" onclick="toggleSettings()">⚙️</button>
                 </div>
             </div>
         </header>
@@ -506,34 +450,9 @@
             <div class="skeleton"></div>
             <div class="skeleton"></div>
         </div>
-        
-        <div class="grill">
-            <div class="grill-grid">
-                <button class="grill-btn active" onclick="goTo('home')">
-                    <span class="icon">🏠</span>
-                    <span class="label">Início</span>
-                </button>
-                <button class="grill-btn" onclick="goTo('buscar')">
-                    <span class="icon">🔍</span>
-                    <span class="label">Buscar</span>
-                </button>
-                <button class="grill-btn" onclick="goTo('editais')">
-                    <span class="icon">📜</span>
-                    <span class="label">Editais</span>
-                </button>
-                <button class="grill-btn" onclick="goTo('perfil')">
-                    <span class="icon">👤</span>
-                    <span class="label">Perfil</span>
-                </button>
-                <button class="grill-btn" onclick="goTo('config')">
-                    <span class="icon">⚙️</span>
-                    <span class="label">Config</span>
-                </button>
-            </div>
-        </div>
-        
-        <div class="toast" id="toast"></div>
     </div>
+    
+    <div class="toast" id="toast"></div>
     
     <script>
         var tg = window.Telegram.WebApp;
@@ -669,27 +588,9 @@
             loadItems(currentFilter);
         }
         
-        function goTo(page) {
+        function toggleSettings() {
             haptic('medium');
-            document.querySelectorAll('.grill-btn').forEach(function(b) {
-                b.classList.remove('active');
-            });
-            
-            var labels = {home: 'Início', buscar: 'Buscar', editais: 'Editais', perfil: 'Perfil', config: 'Config'};
-            
-            if (page === 'home') {
-                loadStats();
-                loadItems('all');
-                showToast('🏠 Início');
-            } else if (page === 'buscar') {
-                showToast('🔍 Busca em breve');
-            } else if (page === 'editais') {
-                showToast('📜 Editais em breve');
-            } else if (page === 'perfil') {
-                showToast('👤 Perfil em breve');
-            } else if (page === 'config') {
-                showToast('⚙️ Configurações em breve');
-            }
+            showToast('⚙️ Configurações em breve');
         }
         
         document.querySelectorAll('.chip').forEach(function(c) {

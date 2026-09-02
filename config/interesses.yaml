@@ -1,0 +1,107 @@
+# Perfil de interesses do usuário (Guto)
+# Usado para filtrar conteúdo relevante no Mini App
+
+pesquisador:
+  nome: José Augusto de Lima Prestes
+  apelido: Guto
+  instituicao: Unicamp (FEEC)
+  programa: Mestrado em Engenharia Elétrica e de Computacao
+
+areas_principais:
+  - Multi-Agent Reinforcement Learning (MARL)
+  - Robótica humanoide e aprendizado coletivo
+  - Cloud robotics
+  - Campos mórficos simulados (morphic fields)
+  - Large Language Models (LLMs)
+  - Pseudo-consciência e alinhamento de IA
+  - Ética em IA e governança
+  - Interpretabilidade e auditabilidade
+  - Direito digital e LGPD
+  - Contratos de PD&I
+
+palavras_chave:
+  # MARL / Robótica
+  - multi-agent
+  - multiagent
+  - reinforcement learning
+  - MARL
+  - robot
+  - robotics
+  - humanoid
+  - swarm
+  - collective learning
+  - cloud robotics
+  - morphic field
+  - shared memory
+  - cooperative navigation
+  
+  # LLMs / IA
+  - LLM
+  - large language model
+  - GPT
+  - transformer
+  - attention mechanism
+  - self-attention
+  - neural network
+  - deep learning
+  - machine learning
+  - artificial intelligence
+  - AI alignment
+  - AI ethics
+  - pseudo-consciousness
+  - introspection
+  - hallucination
+  - prompt injection
+  - RAG
+  - fine-tuning
+  - instruction tuning
+  
+  # Governança / Ética
+  - AI governance
+  - AI regulation
+  - LGPD
+  - data protection
+  - privacy
+  - compliance
+  - auditability
+  - interpretability
+  - explainability
+  - responsible AI
+  - AI literacy
+  
+  # Editais / Fomento
+  - FAPESP
+  - CNPq
+  - CAPES
+  - FINEP
+  - Lei de Informática
+  - PPI
+  - ANEEL
+  - edital
+  - chamada pública
+  - subvenção
+  - PD&I
+  - pesquisa e desenvolvimento
+
+fontes_preferidas:
+  - arXiv (cs.AI, cs.LG, cs.RO, cs.MA, cs.CL, cs.CY)
+  - Google Scholar alerts
+  - FAPESP
+  - CNPq
+  - CAPES
+  - FINEP
+  - DOU (Diário Oficial)
+  - Medium (jalprestes)
+  - Substack (joseprestes.substack.com)
+
+niveis_relevancia:
+  alto:
+    - palavras-chave em título
+    - autor reconhecido na área
+    - venue de impacto (Nature, Science, NeurIPS, ICML, ICRA, IROS, AAAI, ACL, EMNLP)
+  medio:
+    - palavras-chave em snippet/abstract
+    - tópicos adjacentes
+  baixo:
+    - match fraco ou indireto
+    - conteúdo muito antigo (>5 anos, exceto seminal)

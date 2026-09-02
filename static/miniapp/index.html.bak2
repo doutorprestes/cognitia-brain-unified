@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <title>CognitiaBrain</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg: var(--tg-theme-bg-color, #0f172a);
+            --surface: var(--tg-theme-secondary-bg-color, #1e293b);
+            --surface-hover: #273548;
+            --primary: var(--tg-theme-button-color, #3b82f6);
+            --primary-hover: #2563eb;
+            --text: var(--tg-theme-text-color, #f1f5f9);
+            --text-muted: var(--tg-theme-hint-color, #94a3b8);
+            --border: #334155;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.3);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 100px; overflow-x: hidden; }
+        
+        /* Header */
+        .header { background: linear-gradient(135deg, var(--surface) 0%, rgba(59,130,246,0.1) 180%); padding: 20px 20px 16px; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+        .header-top { display: flex; align-items: center; justify-content: space-between; }
+        .header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; }
+        .header .subtitle { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+        .header-icon { font-size: 1.8rem; animation: pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        
+        /* Stats Row */
+        { display: flex; gap: 10px; padding: 16px 20px; }
+        .stat-card { flex: 1; background: var(--surface); border-radius: var(--radius-sm); padding: 14px 10px; text-align: center; border: 1px solid var(--border); transition: transform 0.2s, box-shadow 0.2s; }
+        .stat-card:active { transform: scale(0.96); }
+        .stat-card .value { font-size: 1.6rem; font-weight: 800; color: var(--primary); line-height: 1; }
+        .stat-card .label { font-size: 0.65rem; color: var(--text-muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        
+        /* Filter Chips */
+        .filters { display: flex; gap: 8px; padding: 0 20px 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .filters::-webkit-scrollbar { display: none; }
+        .chip { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); font-size: 0.8rem; font-weight: 600; white-space: nowrap; cursor: pointer; transition: all 0.2s; }
+        .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .chip:active { transform: scale(0.95); }
+        
+        /* Section */
+        .section { padding: 0 20px; }
+        .section-title { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+        
+        /* Cards */
+        .card { background: var(--surface); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; border: 1px solid var(--border); transition: transform 0.15s, box-shadow 0.15s; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card:active { transform: scale(0.98); }
+        .card-type { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .card-type.grant { background: rgba(34,197,94,0.15); color: var(--success); }
+        .card-type.artigo { background: rgba(59,130,246,0.15); color: var(--primary); }
+        .card-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; line-height: 1.4; color: var(--text); }
+        .card-meta { display: flex; gap: 12px; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; flex-wrap: wrap; }
+        .card-meta span { display: flex; align-items: center; gap: 4px; }
+        .card-snippet { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 14px; }
+        .card-actions { display: flex; gap: 8px; }
+        .btn { padding: 10px 18px; border-radius: var(--radius-sm); border: none; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+        .btn:active { transform: scale(0.95); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-icon { width: 40px; height: 40px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(30,41,59,0.95); backdrop-filter: blur(12px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--text-muted); font-size: 0.65rem; font-weight: 600; padding: 8px 20px; cursor: pointer; transition: color 0.2s; border-radius: 12px; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item .icon { font-size: 1.3rem; transition: transform 0.2s; }
+        .nav-item.active .icon { transform: scale(1.15); }
+        
+        /* Empty & Loading */
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.5; }
+        .empty-state p { font-size: 0.9rem; }
+        .skeleton { background: linear-gradient(90deg, var(--surface) 25%, var(--surface-hover) 50%, var(--surface) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--radius-sm); }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .skeleton-card { height: 160px; margin-bottom: 12px; border-radius: var(--radius); }
+        
+        /* Toast */
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border); padding: 12px 24px; border-radius: 24px; font-size: 0.85rem; font-weight: 600; z-index: 200; opacity: 0; transition: all 0.3s; pointer-events: none; box-shadow: var(--shadow); }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        
+        /* Search */
+        .search-box { margin: 0 20px 16px; position: relative; }
+        .search-box input { width: 100%; padding: 12px 16px 12px 44px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+        .search-box input:focus { border-color: var(--primary); }
+        .search-box input::placeholder { color: var(--text-muted); }
+        .search-box .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 1rem; opacity: 0.5; }
+        
+        /* Badge */
+        .badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--primary); color: white; font-size: 0.6rem; font-weight: 700; margin-left: 4px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-top">
+            <div>
+                <h1>🧠 CognitiaBrain</h1>
+                <div class="subtitle">Monitoramento Acadêmico Inteligente</div>
+            </div>
+            <div class="header-icon">⚡</div>
+        </div>
+    </header>
+    
+    <div class="stats">
+        <div class="stat-card" onclick="scrollToItems()"><div class="value" id="stat-items">0</div><div class="label">Total</div></div>
+        <div class="stat-card" onclick="filterByType('grant')"><div class="value" id="stat-grants">0</div><div class="label">Grants</div></div>
+        <div class="stat-card" onclick="filterByType('artigo')"><div class="value" id="stat-artigos">0</div><div class="label">Artigos</div></div>
+    </div>
+    
+    <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Buscar itens..." oninput="debounceSearch(this.value)">
+    </div>
+    
+    <div class="filters">
+        <div class="chip active" data-filter="all" onclick="setFilter('all')">📋 Todos</div>
+        <div class="chip" data-filter="grant" onclick="setFilter('grant')">💰 Grants</div>
+        <div class="chip" data-filter="artigo" onclick="setFilter('artigo')">📄 Artigos</div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">📌 Itens Recentes <span class="badge" id="item-count">0</span></div>
+        <div id="items-container"><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div></div>
+    </div>
+    
+    <nav class="bottom-nav">
+        <div class="nav-item active" data-nav="home" onclick="navigate('home')"><span class="icon">🏠</span><span>Início</span></div>
+        <div class="nav-item" data-nav="grants" onclick="navigate('grants')"><span class="icon">💰</span><span>Grants</span></div>
+        <div class="nav-item" data-nav="artigos" onclick="navigate('artigos')"><span class="icon">📄</span><span>Artigos</span></div>
+    </nav>
+    
+    <div id="toast" class="toast"></div>
+    
+    <script>
+        var tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        
+        var currentFilter = 'all';
+        var allItems = [];
+        var searchTimeout = null;
+        
+        function haptic(t) { if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred(t); }
+        
+        function apiCall(endpoint, opts) {
+            opts = opts || {};
+            return fetch('/api' + endpoint, { headers: {'Content-Type': 'application/json'}, ...opts }).then(function(r) { return r.json(); });
+        }
+        
+        function loadStats() {
+            apiCall('/stats').then(function(d) {
+                if (!d) return;
+                animateValue('stat-items', d.total_items || 0);
+                animateValue('stat-grants', d.total_grants || 0);
+                animateValue('stat-artigos', d.total_artigos || 0);
+            });
+        }
+        
+        function animateValue(id, end) {
+            var el = document.getElementById(id);
+            var start = parseInt(el.textContent) || 0;
+            if (start === end) return;
+            var duration = 600;
+            var startTime = performance.now();
+            function update(currentTime) {
+                var elapsed = currentTime - startTime;
+                var progress = Math.min(elapsed / duration, 1);
+                var ease = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(start + (end - start) * ease);
+                if (progress < 1) requestAnimationFrame(update);
+            }
+            requestAnimationFrame(update);
+        }
+        
+        function loadItems(type) {
+            type = type || 'all';
+            var c = document.getElementById('items-container');
+            c.innerHTML = '<div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>';
+            apiCall('/items?type=' + type).then(function(d) {
+                if (!d || d.items.length === 0) {
+                    c.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Nenhum item encontrado</p></div>';
+                    document.getElementById('item-count').textContent = '0';
+                    return;
+                }
+                allItems = d.items;
+                renderItems(d.items);
+                document.getElementById('item-count').textContent = d.items.length;
+            });
+        }
+        
+        function renderItems(items) {
+            var c = document.getElementById('items-container');
+            if (items.length === 0) {
+                c.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Nenhum resultado encontrado</p></div>';
+                return;
+            }
+            c.innerHTML = items.map(function(item, i) {
+                var typeLabel = item.type === 'grant' ? '💰 Grant' : '📄 Artigo';
+                var typeClass = item.type || 'artigo';
+                var delay = Math.min(i * 50, 300);
+                return '<div class="card" style="animation-delay:' + delay + 'ms"><div class="card-type ' + typeClass + '">' + typeLabel + '</div><div class="card-title">' + item.title + '</div><div class="card-meta"><span>📌 ' + item.source + '</span><span>📅 ' + formatDate(item.scraped_at) + '</span></div>' + (item.snippet ? '<div class="card-snippet">' + item.snippet + '</div>' : '') + '<div class="card-actions"><a href="' + item.url + '" target="_blank" class="btn btn-primary">🔗 Abrir</a><button class="btn btn-icon btn-success" onclick="feedback(\'' + item.hash + '\', 1)" title="Útil">👍</button><button class="btn btn-icon btn-danger" onclick="feedback(\'' + item.hash + '\', 0)" title="Não útil">👎</button></div></div>';
+            }).join('');
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                var d = new Date(dateStr);
+                return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+            } catch(e) { return dateStr; }
+        }
+        
+        function feedback(hash, label) {
+            haptic('light');
+            apiCall('/feedback', { method: 'POST', body: JSON.stringify({ hash: hash, label: label }) });
+            showToast(label ? '👍 Feedback: Útil!' : '👎 Feedback: Não útil');
+        }
+        
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, 2500);
+        }
+        
+        function setFilter(type) {
+            haptic('medium');
+            currentFilter = type;
+            document.querySelectorAll('.chip').forEach(function(el) { el.classList.remove('active'); });
+            document.querySelector('.chip[data-filter="' + type + '"]').classList.add('active');
+            loadItems(type);
+        }
+        
+        function filterByType(type) {
+            setFilter(type);
+            scrollToItems();
+        }
+        
+        function scrollToItems() {
+            document.getElementById('items-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        function debounceSearch(query) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                if (!query.trim()) { loadItems(currentFilter); return; }
+                var filtered = allItems.filter(function(item) {
+                    return (item.title || '').toLowerCase().includes(query.toLowerCase()) ||
+                           (item.source || '').toLowerCase().includes(query.toLowerCase()) ||
+                           (item.snippet || '').toLowerCase().includes(query.toLowerCase());
+                });
+                renderItems(filtered);
+                document.getElementById('item-count').textContent = filtered.length;
+            }, 300);
+        }
+        
+        function navigate(page) {
+            haptic('medium');
+            document.querySelectorAll('.nav-item').forEach(function(el) { el.classList.remove('active'); });
+            document.querySelector('.nav-item[data-nav="' + page + '"]').classList.add('active');
+            if (page === 'home') { setFilter('all'); }
+            else if (page === 'grants') { setFilter('grant'); }
+            else if (page === 'artigos') { setFilter('artigo'); }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() { loadStats(); loadItems('all'); });
+    </script>
+</body>
+</html>

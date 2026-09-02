@@ -9,6 +9,7 @@ from pathlib import Path
 
 from src.shared.config import config
 from src.shared.database import UnifiedDatabase
+from src.shared.relevancia import engine as relevancia_engine
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -22,22 +23,18 @@ def validate_telegram_init_data(init_data: str, bot_token: str) -> dict:
     if not init_data:
         raise HTTPException(status_code=401, detail="No initData")
     
-    # Parse the query string
     params = {}
     for item in init_data.split("&"):
         if "=" in item:
             key, value = item.split("=", 1)
             params[key] = value
     
-    # Get the hash to verify
     check_hash = params.pop("hash", None)
     if not check_hash:
         raise HTTPException(status_code=401, detail="No hash")
     
-    # Create data check string
     data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(params.items()))
     
-    # Calculate expected hash
     secret_key = hmac.new(
         key=b"WebAppData",
         msg=bot_token.encode(),
@@ -53,7 +50,6 @@ def validate_telegram_init_data(init_data: str, bot_token: str) -> dict:
     if expected_hash != check_hash:
         raise HTTPException(status_code=401, detail="Invalid hash")
     
-    # Parse user data
     result = {}
     if "user" in params:
         result["user"] = json.loads(params["user"])
@@ -83,8 +79,12 @@ async def items(type: str = "all", limit: int = 50):
     db = UnifiedDatabase()
     item_type = None if type == "all" else type
     unnotified = db.get_unnotified(item_type)
+    
+    # Aplicar filtro de relevância
+    itens_filtrados = relevancia_engine.filtrar(unnotified, threshold=0.1)
+    
     result = []
-    for item in unnotified[:limit]:
+    for item in itens_filtrados[:limit]:
         result.append({
             "hash": item["hash"],
             "title": item["title"],
@@ -94,7 +94,7 @@ async def items(type: str = "all", limit: int = 50):
             "snippet": item.get("snippet", ""),
             "scraped_at": str(item.get("scraped_at", "")),
         })
-    return {"items": result, "total": len(unnotified)}
+    return {"items": result, "total": len(itens_filtrados)}
 
 
 @pwa_app.post("/api/feedback")
