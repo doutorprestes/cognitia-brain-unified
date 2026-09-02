@@ -44,6 +44,18 @@ class UnifiedDatabase:
                     snippet TEXT, confidence REAL DEFAULT 0.0,
                     scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, notified_at TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS grants (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    hash TEXT UNIQUE NOT NULL,
+                    title TEXT NOT NULL,
+                    agency TEXT NOT NULL,
+                    url TEXT NOT NULL,
+                    status TEXT DEFAULT 'open',
+                    deadline TEXT,
+                    description TEXT,
+                    valor TEXT,
+                    scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS feedback (
                     id INTEGER PRIMARY KEY AUTOINCREMENT, item_hash TEXT NOT NULL,
                     label INTEGER NOT NULL CHECK(label IN (0, 1)), confidence REAL,
@@ -66,6 +78,8 @@ class UnifiedDatabase:
                 CREATE INDEX IF NOT EXISTS idx_items_type ON items(type);
                 CREATE INDEX IF NOT EXISTS idx_items_source ON items(source);
                 CREATE INDEX IF NOT EXISTS idx_items_notified ON items(notified_at);
+                CREATE INDEX IF NOT EXISTS idx_grants_agency ON grants(agency);
+                CREATE INDEX IF NOT EXISTS idx_grants_status ON grants(status);
             ''')
 
     @staticmethod
@@ -83,6 +97,58 @@ class UnifiedDatabase:
                 (item_hash, item['title'], item['url'], item['source'], item['type'], item.get('snippet', ''))
             )
         return True
+
+    def insert_grant(self, grant: dict) -> bool:
+        """Insere um edital de fomento."""
+        grant_hash = grant.get('hash') or self.hash_item(grant['title'], grant['url'])
+        with self._connection() as conn:
+            cursor = conn.execute('SELECT 1 FROM grants WHERE hash = ?', (grant_hash,))
+            if cursor.fetchone():
+                return False
+            conn.execute('''
+                INSERT INTO grants (hash, title, agency, url, status, deadline, description, valor)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                grant_hash,
+                grant['title'],
+                grant.get('agency', ''),
+                grant.get('url', ''),
+                grant.get('status', 'open'),
+                grant.get('deadline', ''),
+                grant.get('description', ''),
+                grant.get('valor', '')
+            ))
+        return True
+
+    def get_grants(self, agency: str = None, status: str = None, limit: int = 50) -> list:
+        """Lista editais com filtros."""
+        with self._connection() as conn:
+            query = 'SELECT * FROM grants WHERE 1=1'
+            params = []
+            if agency:
+                query += ' AND agency = ?'
+                params.append(agency)
+            if status:
+                query += ' AND status = ?'
+                params.append(status)
+            query += ' ORDER BY scraped_at DESC LIMIT ?'
+            params.append(limit)
+            cursor = conn.execute(query, params)
+            return [dict(row) for row in cursor.fetchall()]
+
+    def get_grants_stats(self) -> dict:
+        """Estatísticas de editais."""
+        with self._connection() as conn:
+            total = conn.execute('SELECT COUNT(*) FROM grants').fetchone()[0]
+            abertos = conn.execute("SELECT COUNT(*) FROM grants WHERE status = 'open'").fetchone()[0]
+            fechados = conn.execute("SELECT COUNT(*) FROM grants WHERE status = 'closed'").fetchone()[0]
+            agencies = conn.execute('SELECT agency, COUNT(*) as cnt FROM grants GROUP BY agency ORDER BY cnt DESC').fetchall()
+            return {
+                'total': total,
+                'abertos': abertos,
+                'fechados': fechados,
+                'agencies': [{'agency': r['agency'], 'count': r['cnt']} for r in agencies]
+            }
 
     def exists(self, item_hash: str) -> bool:
         with self._connection() as conn:

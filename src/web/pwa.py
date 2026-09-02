@@ -64,6 +64,20 @@ async def stats():
     }
 
 
+@pwa_app.get("/api/grants/stats")
+async def grants_stats():
+    """Estatísticas de editais."""
+    db = UnifiedDatabase()
+    return db.get_grants_stats()
+
+
+@pwa_app.get("/api/grants")
+async def grants(agency: str = None, status: str = None, limit: int = 50):
+    """Lista editais com filtros."""
+    db = UnifiedDatabase()
+    return {"grants": db.get_grants(agency, status, limit)}
+
+
 @pwa_app.get("/api/items")
 async def items(type: str = "all", limit: int = 20, offset: int = 0):
     db = UnifiedDatabase()

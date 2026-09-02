@@ -8,7 +8,6 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
         :root {
             --bg: var(--tg-theme-bg-color, #0a0f1d);
             --surface: var(--tg-theme-secondary-bg-color, #131a2b);
@@ -29,12 +28,9 @@
             --cat-alignment: #f59e0b;
             --cat-default: #64748b;
         }
-        
         html, body { height: 100%; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
         .app { height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: linear-gradient(180deg, var(--bg) 0%, #080c16 100%); }
-        
-        /* Header */
         .header { flex-shrink: 0; padding: 14px 16px; padding-top: calc(14px + var(--safe-top)); background: var(--surface); border-bottom: 1px solid rgba(255,255,255,0.04); }
         .header-top { display: flex; align-items: center; justify-content: space-between; }
         .brand { display: flex; align-items: center; gap: 10px; }
@@ -44,8 +40,6 @@
         .header-actions { display: flex; gap: 8px; }
         .icon-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); color: var(--text-muted); font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
         .icon-btn:active { background: rgba(255,255,255,0.08); transform: scale(0.95); }
-        
-        /* Stats */
         .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: var(--space) 16px; flex-shrink: 0; }
         .stat { background: var(--surface); border-radius: var(--radius-sm); padding: 12px 10px; text-align: center; border: 1px solid rgba(255,255,255,0.04); position: relative; overflow: hidden; }
         .stat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
@@ -54,14 +48,9 @@
         .stat:nth-child(3)::before { background: linear-gradient(90deg, #f59e0b, #ef4444); opacity: 0.4; }
         .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--text); line-height: 1; letter-spacing: -0.02em; }
         .stat-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-top: 4px; }
-        
-        /* Content */
         .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px; padding-bottom: calc(100px + var(--safe-bottom)); }
-        
         .pull-indicator { text-align: center; padding: 12px; color: var(--text-muted); font-size: 0.7rem; display: none; }
         .pull-indicator.visible { display: block; }
-        
-        /* Card */
         .card { background: var(--surface); border-radius: var(--radius); margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.04); overflow: hidden; animation: cardIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
         @keyframes cardIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .card-accent { position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--cat-default); }
@@ -87,7 +76,6 @@
         .btn-primary { background: var(--primary); color: var(--primary-text); box-shadow: 0 2px 8px rgba(59,130,246,0.25); }
         .btn-icon { width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 0.85rem; background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.06); }
         .btn-icon:active { background: rgba(255,255,255,0.1); }
-        
         .empty { text-align: center; padding: 50px 20px; }
         .empty-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.3; }
         .empty-text { font-size: 0.8rem; color: var(--text-muted); }
@@ -95,14 +83,11 @@
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         .loading-more { text-align: center; padding: 16px; color: var(--text-muted); font-size: 0.7rem; display: none; }
         .loading-more.visible { display: block; }
-        
         .search-bar { display: none; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid rgba(255,255,255,0.04); }
         .search-bar.visible { display: block; }
         .search-input { width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); color: var(--text); font-size: 0.85rem; outline: none; }
         .search-input:focus { border-color: var(--primary); }
         .search-input::placeholder { color: var(--text-muted); }
-        
-        /* Full-screen overlays */
         .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 200; overflow-y: auto; }
         .overlay.visible { display: block; }
         .overlay-header { padding: 20px 16px; padding-top: calc(20px + var(--safe-top)); background: var(--surface); border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; align-items: center; gap: 12px; }
@@ -110,12 +95,10 @@
         .overlay-header p { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
         .overlay-back { width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); color: var(--text); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .overlay-content { padding: 16px; padding-bottom: calc(100px + var(--safe-bottom)); }
-        
         .interests-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
         .interest-item { display: flex; align-items: center; gap: 8px; padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06); background: var(--surface); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
         .interest-item:active { transform: scale(0.96); }
         .interest-item.checked { border-color: var(--primary); background: rgba(59,130,246,0.1); }
-        
         .config-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06); background: var(--surface); margin-bottom: 10px; }
         .config-label { font-size: 0.85rem; font-weight: 600; }
         .config-value { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
@@ -124,17 +107,14 @@
         .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: white; transition: all 0.2s; }
         .toggle.active::after { left: 22px; }
         .select-config { padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06); background: var(--surface); color: var(--text); font-size: 0.75rem; }
-        
         .stats-card { background: var(--surface); border-radius: var(--radius); padding: 16px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 10px; }
         .stats-card h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
         .stats-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.75rem; }
         .stats-row:last-child { border-bottom: none; }
         .stats-label { color: var(--text-muted); }
         .stats-value { font-weight: 700; }
-        
         .toast { position: fixed; bottom: calc(100px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid rgba(255,255,255,0.08); padding: 10px 20px; border-radius: 24px; font-size: 0.75rem; font-weight: 600; z-index: 300; opacity: 0; transition: all 0.25s; pointer-events: none; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-        
         .grill { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid rgba(255,255,255,0.04); padding: 8px 16px; padding-bottom: calc(8px + var(--safe-bottom)); z-index: 100; }
         .grill-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
         .grill-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 6px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.04); background: transparent; color: var(--text-muted); font-size: 0.6rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; }
@@ -176,6 +156,26 @@
             <div class="pull-indicator" id="pull-indicator">↓ Puxe para atualizar</div>
             <div id="items-list"></div>
             <div class="loading-more" id="loading-more">Carregando mais...</div>
+        </div>
+
+        <!-- Grants Overlay -->
+        <div class="overlay" id="grants-screen">
+            <div class="overlay-header">
+                <button class="overlay-back" onclick="goTo('home')">←</button>
+                <div>
+                    <h2>📜 Editais</h2>
+                    <p>Oportunidades de fomento</p>
+                </div>
+            </div>
+            <div class="overlay-content" id="grants-content">
+                <div class="stats-card">
+                    <h3>📊 Resumo</h3>
+                    <div class="stats-row"><span class="stats-label">Total</span><span class="stats-value" id="grants-total">0</span></div>
+                    <div class="stats-row"><span class="stats-label">Abertos</span><span class="stats-value" id="grants-abertos">0</span></div>
+                    <div class="stats-row"><span class="stats-label">Fechados</span><span class="stats-value" id="grants-fechados">0</span></div>
+                </div>
+                <div id="grants-list"></div>
+            </div>
         </div>
         
         <!-- Profile Overlay -->
@@ -255,7 +255,7 @@
         
         <div class="toast" id="toast"></div>
     </div>
-    
+
     <script>
         var tg = window.Telegram.WebApp;
         tg.ready();
@@ -575,6 +575,43 @@
             showToast('🗑️ Cache limpo!');
         }
         
+        function loadGrants() {
+            api('/grants/stats').then(function(d) {
+                document.getElementById('grants-total').textContent = d.total || 0;
+                document.getElementById('grants-abertos').textContent = d.abertos || 0;
+                document.getElementById('grants-fechados').textContent = d.fechados || 0;
+            });
+            
+            api('/grants?limit=50').then(function(d) {
+                var el = document.getElementById('grants-list');
+                if (!d.grants || d.grants.length === 0) {
+                    el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Nenhum edital encontrado</div></div>';
+                    return;
+                }
+                el.innerHTML = d.grants.map(function(grant, i) {
+                    var statusColor = grant.status === 'open' ? '#10b981' : '#ef4444';
+                    var statusLabel = grant.status === 'open' ? '🟢 Aberto' : '🔴 Fechado';
+                    var delay = Math.min(i * 50, 200);
+                    return '<div class="card" style="animation-delay:' + delay + 'ms">' +
+                        '<div class="card-body">' +
+                            '<div class="card-top">' +
+                                '<span class="card-badge" style="background:' + statusColor + '20; color:' + statusColor + '">' + statusLabel + '</span>' +
+                            '</div>' +
+                            '<div class="card-title">' + grant.title + '</div>' +
+                            '<div class="card-meta"><span>🏛️ ' + grant.agency + '</span>' + (grant.deadline ? '<span>📅 ' + grant.deadline + '</span>' : '') + '</div>' +
+                            (grant.description ? '<div class="card-snippet">' + grant.description + '</div>' : '') +
+                            '<div class="card-footer">' +
+                                '<span class="source">' + (grant.valor || '') + '</span>' +
+                                '<div class="actions">' +
+                                    '<a href="' + grant.url + '" target="_blank" class="btn btn-primary">🔗 Abrir</a>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+            });
+        }
+        
         function goTo(page) {
             haptic('medium');
             document.querySelectorAll('.grill-btn').forEach(function(b) { b.classList.remove('active'); });
@@ -582,10 +619,12 @@
             var searchBar = document.getElementById('search-bar');
             var profileScreen = document.getElementById('profile-screen');
             var configScreen = document.getElementById('config-screen');
+            var grantsScreen = document.getElementById('grants-screen');
             
             searchBar.classList.remove('visible');
             profileScreen.classList.remove('visible');
             configScreen.classList.remove('visible');
+            grantsScreen.classList.remove('visible');
             
             if (page === 'home') {
                 loadStats();
@@ -596,7 +635,9 @@
                 document.getElementById('search-input').focus();
                 showToast('🔍 Buscar');
             } else if (page === 'editais') {
-                showToast('📜 Editais em breve');
+                grantsScreen.classList.add('visible');
+                loadGrants();
+                showToast('📜 Editais');
             } else if (page === 'perfil') {
                 profileScreen.classList.add('visible');
                 loadProfile();
